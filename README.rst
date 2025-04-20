@@ -23,4 +23,13 @@ Install via pip:
     pip install detectinhos
 
 ----
-Usage to be added.
+
+Usage
+-----
+
+To use ``detectinhos``, do the following:
+Example:
+
+.. code-block:: python
+
+    import detectinhos
