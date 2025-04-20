@@ -30,9 +30,7 @@ name = "detectinhos"
 dynamic = ["version"]
 description = "Read frames from OpenCV like humans"
 dependencies = [
-    "opencv-python",
-    "numpy",
-    "click",
+    "torch",
 ]
 readme = "README.rst"
 
