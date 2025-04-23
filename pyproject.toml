@@ -30,6 +30,8 @@ name = "detectinhos"
 dynamic = ["version"]
 description = "Read frames from OpenCV like humans"
 dependencies = [
+    "opencv-python",
+    "numpy",
     "torch",
     "dacite",
     "dataclasses-json",
