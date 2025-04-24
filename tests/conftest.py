@@ -11,7 +11,7 @@ def annotations(tmp_path) -> pathlib.Path:
     image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
     fname = str(tmp_path / "image.png")
     cv2.imwrite(fname, image)
-    h, w = image.shape
+    h, w, _ = image.shape
     example = [
         {
             "file_name": fname,
