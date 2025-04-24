@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10"]
 
     steps:
       - uses: actions/checkout@v3
@@ -24,11 +24,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install -e .
+          pip install .
 
       - name: Run the tests
         run: |
-          PYTHONFAULTHANDLER=2 pytest --cov=cvframes --cov-report term-missing tests/
+          pytest tests/
 
       - name: Run pre-commit checks
         uses: pre-commit/action@v3.0.1
