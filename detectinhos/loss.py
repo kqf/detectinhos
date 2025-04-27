@@ -15,7 +15,8 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
     @classmethod
-    def is_dataclass(cls) -> bool: ...
+    def is_dataclass(cls) -> bool:
+        ...
 
 
 def match(
@@ -81,8 +82,8 @@ class DetectionLoss(nn.Module):
         y_true: HasBoxesAndClasses[torch.Tensor],
     ) -> dict[str, torch.Tensor]:
         positives, negatives = self.match(
-            y_pred=y_pred,
-            y_true=y_true,
+            y_pred,
+            y_true,
         )
 
         losses = {}
