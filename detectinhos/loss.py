@@ -1,5 +1,6 @@
 from dataclasses import fields
-from typing import Generic, Protocol, TypeVar
+from functools import partial
+from typing import Callable, Generic, Protocol, Tuple, TypeVar
 
 import torch
 from torch import nn
@@ -14,8 +15,7 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
     @classmethod
-    def is_dataclass(cls) -> bool:
-        ...
+    def is_dataclass(cls) -> bool: ...
 
 
 def match(
@@ -52,21 +52,27 @@ def select(y_pred, y_true, anchors, use_negatives, positives, negatives):
     return conf_all, targets_all, anchors[a]
 
 
+MATCHING_TYPE = Callable[
+    [HasBoxesAndClasses[torch.Tensor], HasBoxesAndClasses[torch.Tensor]],
+    Tuple[torch.Tensor, torch.Tensor],
+]
+
+
 # TODO: Make it generic wrt WeightedLoss
 class DetectionLoss(nn.Module):
     def __init__(
         self,
         priors: torch.Tensor,
         sublosses: HasBoxesAndClasses[WeightedLoss],
-        num_classes: int = 2,
-        matching_overlap: float = 0.35,
-        neg_pos: int = 7,
+        match: MATCHING_TYPE = partial(
+            match,
+            negpos_ratio=7,
+            overalp=0.35,
+        ),
     ) -> None:
         super().__init__()
-        self.num_classes = num_classes
-        self.matching_overlap = matching_overlap
-        self.negpos_ratio = neg_pos
         self.sublosses = sublosses
+        self.match = match
         self.register_buffer("priors", priors)
 
     def forward(
@@ -74,12 +80,9 @@ class DetectionLoss(nn.Module):
         y_pred: HasBoxesAndClasses[torch.Tensor],
         y_true: HasBoxesAndClasses[torch.Tensor],
     ) -> dict[str, torch.Tensor]:
-        positives, negatives = match(
+        positives, negatives = self.match(
             y_pred=y_pred,
             y_true=y_true,
-            anchors=self.priors,
-            negpos_ratio=self.negpos_ratio,
-            overalp=self.matching_overlap,
         )
 
         losses = {}
