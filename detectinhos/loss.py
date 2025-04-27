@@ -4,6 +4,7 @@ from typing import Generic, Protocol, TypeVar
 import torch
 from torch import nn
 
+from detectinhos.matching import match
 from detectinhos.sublosses import WeightedLoss
 
 T = TypeVar("T")
@@ -16,24 +17,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     @classmethod
     def is_dataclass(cls) -> bool:
         ...
-
-
-def match(
-    y_pred: HasBoxesAndClasses[torch.Tensor],
-    y_true: HasBoxesAndClasses[torch.Tensor],
-    anchors: torch.Tensor,
-    negpos_ratio: int,
-    overalp: float,
-) -> tuple[torch.Tensor, torch.Tensor]:
-    # match_local(
-    #         y_true.classes,
-    #         y_true.boxes,
-    #         self.priors,
-    #         confidences=y_pred.classes,
-    #         negpos_ratio=self.negpos_ratio,
-    #         overalp=self.matching_overlap,
-    #     )
-    return torch.rand(1, 1, 1), torch.rand(1, 1, 1)
 
 
 def select(y_pred, y_true, anchors, use_negatives, positives, negatives):
@@ -58,12 +41,10 @@ class DetectionLoss(nn.Module):
         self,
         priors: torch.Tensor,
         sublosses: HasBoxesAndClasses[WeightedLoss],
-        num_classes: int = 2,
         matching_overlap: float = 0.35,
         neg_pos: int = 7,
     ) -> None:
         super().__init__()
-        self.num_classes = num_classes
         self.matching_overlap = matching_overlap
         self.negpos_ratio = neg_pos
         self.sublosses = sublosses
