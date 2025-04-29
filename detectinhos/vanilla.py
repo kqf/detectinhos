@@ -68,6 +68,7 @@ class DetectionDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.labels = labels
 
+
     def __len__(self) -> int:
         return len(self.labels)
 
