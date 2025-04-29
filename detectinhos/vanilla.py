@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from detectinhos.batch import BatchElement
-from detectinhos.sample import Sample, read_dataset
+from detectinhos.sample import Sample
 from detectinhos.sublosses import WeightedLoss
 
 
@@ -53,16 +53,21 @@ def to_targets(
 TRANSFORM_TYPE = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
 
 
-class DetectionDataset(torch.data.Dataset):
+def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
+    return x, y
+
+
+class DetectionDataset(torch.utils.data.Dataset):
     def __init__(
         self,
-        labels: Path | str,
+        labels: list[Sample],
         mapping: dict[str, int],
-        transform: TRANSFORM_TYPE = lambda x, y: (x, y),
+        transform: TRANSFORM_TYPE = do_nothing,
     ) -> None:
         self.mapping = mapping
         self.transform = transform
-        self.labels = read_dataset(labels)
+        self.labels = labels
+
 
     def __len__(self) -> int:
         return len(self.labels)
