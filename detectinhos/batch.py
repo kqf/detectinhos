@@ -36,10 +36,10 @@ def detection_collate(
     batch: List[BatchElement],
     to_targets: Callable[..., HasBoxesAndClasses],
 ) -> Batch:
-    images = torch.stack([sample.image for sample in batch])
+    images = torch.stack([torch.Tensor(sample.image) for sample in batch])
     targets = {
         field.name: pad_sequence(
-            [torch.tensor(getattr(e.targets, field.name)) for e in batch],
+            [torch.Tensor(getattr(e.targets, field.name)) for e in batch],
             batch_first=True,
             padding_value=0,
         )
