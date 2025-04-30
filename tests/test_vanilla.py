@@ -16,11 +16,11 @@ class DedetectionModel(torch.nn.Module):
         self.n_clases = n_clases
 
     def forward(self, images: torch.Tensor) -> DetectionTargets:
-        b_size = images.shape[0]
+        batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
         return DetectionTargets(
-            classes=torch.rand((b_size, num_anchors, self.n_clases)),
-            boxes=torch.rand((b_size, num_anchors, 4)),
+            classes=torch.rand((batch, num_anchors, self.n_clases)),
+            boxes=torch.rand((batch, num_anchors, 4)),
         )
 
 
