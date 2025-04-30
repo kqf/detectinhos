@@ -4,7 +4,7 @@ from math import ceil
 import torch
 
 
-def priorbox(
+def anchors(
     min_sizes: list[list[int]],
     steps: list[int],
     clip: bool,
