@@ -1,4 +1,4 @@
 *.egg-*
 *.pyc
-.coverage
+.coverage*
 .python-version

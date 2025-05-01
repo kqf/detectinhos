@@ -46,7 +46,7 @@ def to_targets(
 
     return DetectionTargets(
         boxes=np.array(bboxes),
-        classes=np.array(label_ids),
+        classes=np.array(label_ids, dtype=np.int64),
     )
 
 
