@@ -37,7 +37,11 @@ def select(y_pred, y_true, anchors, use_negatives, positives, negatives):
 
 
 MATCHING_TYPE = Callable[
-    [HasBoxesAndClasses[torch.Tensor], HasBoxesAndClasses[torch.Tensor]],
+    [
+        HasBoxesAndClasses[torch.Tensor],
+        HasBoxesAndClasses[torch.Tensor],
+        torch.Tensor,
+    ],
     Tuple[torch.Tensor, torch.Tensor],
 ]
 
@@ -67,7 +71,7 @@ class DetectionLoss(nn.Module):
         positives, negatives = self.match(
             y_pred,
             y_true,
-            anchors=self.priors,
+            self.priors,
         )
 
         losses = {}
