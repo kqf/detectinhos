@@ -4,7 +4,9 @@ import torch
 
 from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
+from detectinhos.loss import DetectionLoss
 from detectinhos.sample import read_dataset
+from detectinhos.sublosses import WeightedLoss, masked_loss
 from detectinhos.vanilla import DetectionDataset, DetectionTargets
 
 
@@ -47,8 +49,25 @@ def test_vanilla(annotations, resolution=(480, 640)):
         ),
         n_clases=2,
     )
+    loss = DetectionLoss(
+        priors=model.anchors,
+        sublosses=DetectionTargets(
+            classes=WeightedLoss(
+                loss=masked_loss(torch.nn.CrossEntropyLoss()),
+                weight=2.0,
+                enc_pred=lambda x, _: x.reshape(-1, 2),
+                enc_true=lambda x, _: x,
+            ),
+            boxes=WeightedLoss(
+                loss=masked_loss(torch.nn.SmoothL1Loss()),
+                weight=1.0,
+                enc_pred=lambda x, _: x,
+                enc_true=lambda x, _: x,
+            ),
+        ),
+    )
 
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
         y_pred: DetectionTargets = model(batch.image)
-        print(y_pred)
+        print(loss(y_pred, batch.targets))
