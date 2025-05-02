@@ -6,7 +6,11 @@ from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.loss import DetectionLoss
 from detectinhos.sample import read_dataset
-from detectinhos.sublosses import WeightedLoss, masked_loss
+from detectinhos.sublosses import (
+    WeightedLoss,
+    masked_loss,
+    retina_confidence_loss,
+)
 from detectinhos.vanilla import DetectionDataset, DetectionTargets
 
 

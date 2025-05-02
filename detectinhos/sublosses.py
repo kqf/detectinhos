@@ -36,3 +36,16 @@ def masked_loss(loss_function: LOSS_FUNCTION_TYPE) -> LOSS_FUNCTION_TYPE:
         return loss / max(data_masked.shape[0], 1)
 
     return f
+
+
+def retina_confidence_loss(
+    y_pred: torch.Tensor,
+    y_true: torch.Tensor,
+) -> tuple[torch.Tensor]:
+    n_pos = (y_true > 0).sum()
+    loss = torch.nn.functional.cross_entropy(
+        y_pred,
+        y_true.view(-1),
+        reduction="sum",
+    )
+    return loss / n_pos
