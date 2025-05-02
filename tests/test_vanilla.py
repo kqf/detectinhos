@@ -6,7 +6,11 @@ from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.loss import DetectionLoss
 from detectinhos.sample import read_dataset
-from detectinhos.sublosses import WeightedLoss, masked_loss
+from detectinhos.sublosses import (
+    WeightedLoss,
+    masked_loss,
+    retina_confidence_loss,
+)
 from detectinhos.vanilla import DetectionDataset, DetectionTargets
 
 
@@ -24,19 +28,6 @@ class DedetectionModel(torch.nn.Module):
             classes=torch.rand((batch, num_anchors, self.n_clases)),
             boxes=torch.rand((batch, num_anchors, 4)),
         )
-
-
-def retina_confidence_loss(
-    y_pred: torch.Tensor,
-    y_true: torch.Tensor,
-) -> tuple[torch.Tensor]:
-    n_pos = (y_true > 0).sum()
-    loss = torch.nn.functional.cross_entropy(
-        y_pred,
-        y_true.view(-1),
-        reduction="sum",
-    )
-    return loss / n_pos
 
 
 def test_vanilla(annotations, resolution=(480, 640)):
