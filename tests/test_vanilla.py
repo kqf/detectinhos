@@ -68,7 +68,6 @@ def test_vanilla(annotations, resolution=(480, 640)):
                 loss=masked_loss(torch.nn.SmoothL1Loss()),
                 weight=1.0,
                 enc_pred=lambda x, _: x,
-                enc_true=lambda x, _: x,
                 enc_true=partial(encode, variances=[0.1, 0.2]),
                 needs_negatives=False,
             ),
