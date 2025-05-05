@@ -10,12 +10,12 @@ from detectinhos.sample import Annotation
 
 @pytest.fixture
 def image():
-    return np.random.rand(224, 224, 3).astype(np.float32)
+    return np.random.rand(480, 640, 3).astype(np.float32)
 
 
 @pytest.fixture
 def to_image():
-    return Mock(return_value=torch.rand(3, 224, 224))
+    return Mock(return_value=torch.rand(3, 480, 640))
 
 
 @pytest.fixture
