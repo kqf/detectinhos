@@ -13,7 +13,6 @@ RelativeXYXY = tuple[float, float, float, float]
 @dataclass
 class Annotation:
     bbox: RelativeXYXY
-    landmarks: list
     label: str
     score: float = float("nan")
 
@@ -23,9 +22,6 @@ class Annotation:
 class Sample:
     file_name: str
     annotations: list[Annotation]
-
-    def flatten(self) -> tuple:
-        return tuple(zip(*[(a.bbox, a.landmarks) for a in self.annotations]))
 
 
 def to_sample(entry: dict[str, Any]) -> Sample:
