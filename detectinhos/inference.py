@@ -7,7 +7,7 @@ from detectinhos.sample import Annotation, Sample
 
 
 def pred_to_labels(y_pred, priors) -> list[Sample]:
-    return []
+    return [Sample(file_name="", annotations=[]) for _ in range(len(y_pred))]
 
 
 def infer(
