@@ -20,7 +20,7 @@ def model():
     return mock_model
 
 
-def test_infer(image, to_image, model):
+def test_infer(image, model):
     def to_batch(image):
         return torch.from_numpy(image).permute(2, 0, 1).float()
 
