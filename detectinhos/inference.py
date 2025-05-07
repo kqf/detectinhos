@@ -2,12 +2,63 @@ from typing import Callable
 
 import numpy as np
 import torch
+from torchvision.ops import nms
 
+from detectinhos.encode import decode
 from detectinhos.sample import Annotation, Sample
 
+# TODO: How to addd type hints for predictions?
 
-def pred_to_labels(y_pred, priors) -> list[Sample]:
-    return [Sample(file_name="", annotations=[]) for _ in range(len(y_pred))]
+
+def pred_to_labels(
+    y_pred,
+    anchors: torch.Tensor,
+    variances: tuple[float, float] = (0.1, 0.2),
+    nms_threshold: float = 0.4,
+    confidence_threshold: float = 0.1,
+) -> list[Sample]:
+    confidence = torch.nn.functional.softmax(y_pred.classes, dim=-1)
+    total: list[Sample] = []
+    for batch_id, y_pred_boxes in enumerate(y_pred.boxes):
+        boxes_pred = decode(
+            y_pred_boxes,
+            anchors,
+            variances,
+        )
+        # NB: it's desired to start class_ids from 0,
+        # 0 is for background it's not included
+        scores = confidence[batch_id][:, 1:]
+
+        valid_index = torch.where((scores > confidence_threshold).any(-1))[0]
+
+        # NMS doesn't accept fp16 inputs
+        boxes_pred = boxes_pred[valid_index].float()
+        scores = scores[valid_index].float()
+        probs_pred, label_pred = scores.max(dim=-1)
+
+        # do NMS
+        keep = nms(boxes_pred, probs_pred, nms_threshold)
+        boxes_pred_ = boxes_pred[keep, :].cpu().detach().numpy()
+        probs_pred_ = probs_pred[keep].cpu().detach().numpy()
+        label_pred_ = label_pred[keep].cpu().detach().numpy()
+        predictions = zip(
+            boxes_pred_.tolist(),
+            label_pred_.reshape(-1, 1).tolist(),
+            probs_pred_.reshape(-1, 1).tolist(),
+        )
+        total.extend(
+            Sample(
+                file_name="inference",
+                annotations=[
+                    Annotation(
+                        bbox=box,
+                        label=label,
+                    )
+                ],
+            )
+            for box, label, score in predictions
+        )
+    return total
 
 
 def infer(
