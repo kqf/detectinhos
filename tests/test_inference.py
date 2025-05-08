@@ -5,6 +5,7 @@ import pytest
 import torch
 
 from detectinhos.inference import infer
+from detectinhos.vanilla import DetectionTargets
 
 
 @pytest.fixture
@@ -16,7 +17,10 @@ def image():
 def model():
     mock_model = Mock()
     mock_model.priors = Mock()
-    mock_model.return_value = torch.rand(1, 10)  # Mock model output
+    mock_model.return_value = DetectionTargets(
+        classes=torch.rand(1, 10),
+        boxes=torch.rand(1, 10, 4),
+    )
     return mock_model
 
 
