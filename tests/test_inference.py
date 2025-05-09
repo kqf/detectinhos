@@ -18,7 +18,7 @@ def model():
     mock_model = Mock()
     mock_model.priors = torch.rand(1, 10, 4)
     mock_model.return_value = DetectionTargets(
-        classes=torch.rand(1, 10),
+        classes=torch.rand(1, 10, 2),
         boxes=torch.rand(1, 10, 4),
     )
     return mock_model
