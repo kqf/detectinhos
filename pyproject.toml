@@ -33,6 +33,7 @@ dependencies = [
     "opencv-python",
     "numpy",
     "torch",
+    "torchvision",
     "dacite",
     "dataclasses-json",
     "torchvision",
