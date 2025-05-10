@@ -31,7 +31,7 @@ dynamic = ["version"]
 description = "Read frames from OpenCV like humans"
 dependencies = [
     "opencv-python",
-    "numpy",
+    "numpy<2",
     "torch",
     "torchvision",
     "dacite",
