@@ -36,6 +36,7 @@ dependencies = [
     "torchvision",
     "dacite",
     "dataclasses-json",
+    "torchvision",
 ]
 readme = "README.rst"
 
