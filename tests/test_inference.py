@@ -16,7 +16,7 @@ def image():
 @pytest.fixture
 def model():
     mock_model = Mock()
-    mock_model.priors = torch.rand(1, 10, 4)
+    mock_model.priors = torch.rand(10, 4)
     classes = torch.rand(1, 10, 2)
     classes[:, :, 1] = 0.6
     mock_model.return_value = DetectionTargets(
