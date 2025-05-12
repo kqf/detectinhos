@@ -14,14 +14,14 @@ def image():
 
 
 @pytest.fixture
-def model():
+def model(batch_size=1, n_anchors=10, n_classes=2):
     mock_model = Mock()
-    mock_model.priors = torch.rand(10, 4)
-    classes = torch.rand(1, 10, 2)
+    mock_model.priors = torch.rand(n_anchors, 4)
+    classes = torch.rand(batch_size, n_anchors, n_classes)
     classes[:, :, 1] = 0.6
     mock_model.return_value = DetectionTargets(
         classes=classes,
-        boxes=torch.rand(1, 10, 4),
+        boxes=torch.rand(batch_size, n_anchors, 4),
     )
     return mock_model
 
