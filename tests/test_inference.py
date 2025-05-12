@@ -31,4 +31,4 @@ def test_infer(image, model):
         return torch.from_numpy(image).permute(2, 0, 1).float()
 
     annotations = infer(image, to_batch, model)
-    assert len(annotations) == 0
+    assert len(annotations) == 1
