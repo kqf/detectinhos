@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Generic, Protocol, TypeVar
 
 import numpy as np
 import torch
@@ -7,11 +7,20 @@ from torchvision.ops import nms
 from detectinhos.encode import decode
 from detectinhos.sample import Annotation, Sample
 
-# TODO: How to addd type hints for predictions?
+T = TypeVar("T")
+
+
+class HasBoxesAndClasses(Protocol, Generic[T]):
+    boxes: T
+    classes: T
+
+    @classmethod
+    def is_dataclass(cls) -> bool:
+        ...
 
 
 def pred_to_labels(
-    y_pred,
+    y_pred: HasBoxesAndClasses[torch.Tensor],
     anchors: torch.Tensor,
     variances: tuple[float, float] = (0.1, 0.2),
     nms_threshold: float = 0.4,
