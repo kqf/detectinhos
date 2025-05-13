@@ -62,6 +62,7 @@ def pred_to_labels(
                     Annotation(
                         bbox=box,
                         label=label,
+                        score=score,
                     )
                 ],
             )
