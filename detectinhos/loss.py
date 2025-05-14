@@ -20,20 +20,31 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
         ...
 
 
-def select(y_pred, y_true, anchors, use_negatives, positives, negatives):
-    b, a, o = torch.where(positives)
-    if not use_negatives:
-        return y_pred[b, a], y_true[b, o], anchors[a]
+def select(
+    y_pred,
+    y_true,
+    anchors,
+    use_negatives,
+    positives,
+    negatives,
+):
+    b_pos, a_pos, o_pos = torch.where(positives)
+    pred_pos = y_pred[b_pos, a_pos]
+    true_pos = y_true[b_pos, o_pos].view(-1)
+    anch_pos = anchors[a_pos]
 
-    # TODO: Fix this logic
-    conf_pos = y_pred[b, a]
-    targets_pos = y_true[b, o].view(-1)
-    b, a = torch.where(negatives)
-    conf_neg = y_pred[b, a]
-    targets_neg = torch.zeros_like(conf_neg[:, 0], dtype=torch.long)
-    conf_all = torch.cat([conf_pos, conf_neg], dim=0)
-    targets_all = torch.cat([targets_pos, targets_neg], dim=0).long()
-    return conf_all, targets_all, anchors[a]
+    if not use_negatives:
+        return pred_pos, true_pos, anch_pos
+
+    b_neg, b_neg = torch.where(negatives)
+    pred_neg = y_pred[b_neg, b_neg]
+    true_neg = torch.zeros_like(pred_neg[:, 0], dtype=torch.long)
+    anch_neg = anchors[b_neg]
+
+    pred_all = torch.cat([pred_pos, pred_neg], dim=0)
+    true_all = torch.cat([true_pos, true_neg], dim=0).long()
+    anch_all = torch.cat([anch_pos, anch_neg], dim=0)
+    return pred_all, true_all, anch_all
 
 
 MATCHING_TYPE = Callable[
