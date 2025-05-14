@@ -20,19 +20,26 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
         ...
 
 
-def select(y_pred, y_true, anchors, use_negatives, positives, negatives):
-    b, a, o = torch.where(positives)
-    pred_pos = y_pred[b, a]
-    true_pos = y_true[b, o].view(-1)
-    anch_pos = anchors[a]
+def select(
+    y_pred,
+    y_true,
+    anchors,
+    use_negatives,
+    positives,
+    negatives,
+):
+    b_pos, a_pos, o_pos = torch.where(positives)
+    pred_pos = y_pred[b_pos, a_pos]
+    true_pos = y_true[b_pos, o_pos].view(-1)
+    anch_pos = anchors[a_pos]
 
     if not use_negatives:
         return pred_pos, true_pos, anch_pos
 
-    b, a = torch.where(negatives)
-    pred_neg = y_pred[b, a]
+    b_neg, b_neg = torch.where(negatives)
+    pred_neg = y_pred[b_neg, b_neg]
     true_neg = torch.zeros_like(pred_neg[:, 0], dtype=torch.long)
-    anch_neg = anchors[a]
+    anch_neg = anchors[b_neg]
 
     pred_all = torch.cat([pred_pos, pred_neg], dim=0)
     true_all = torch.cat([true_pos, true_neg], dim=0).long()
