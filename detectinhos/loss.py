@@ -30,7 +30,7 @@ def select(
 ):
     b_pos, a_pos, o_pos = torch.where(positives)
     pred_pos = y_pred[b_pos, a_pos]
-    true_pos = y_true[b_pos, o_pos].view(-1)
+    true_pos = y_true[b_pos, o_pos]
     anch_pos = anchors[a_pos]
 
     if not use_negatives:
@@ -42,7 +42,7 @@ def select(
     anch_neg = anchors[b_neg]
 
     pred_all = torch.cat([pred_pos, pred_neg], dim=0)
-    true_all = torch.cat([true_pos, true_neg], dim=0).long()
+    true_all = torch.cat([true_pos.view(-1), true_neg], dim=0).long()
     anch_all = torch.cat([anch_pos, anch_neg], dim=0)
     return pred_all, true_all, anch_all
 
