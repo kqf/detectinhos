@@ -36,12 +36,14 @@ def select(
     if not use_negatives:
         return pred_pos, true_pos, anch_pos
 
-    b_neg, b_neg = torch.where(negatives)
-    pred_neg = y_pred[b_neg, b_neg]
+    b_neg, a_neg = torch.where(negatives)
+    pred_neg = y_pred[b_neg, a_neg]
+    # NB: Convention the negatives are always 1D, and 0 is negative class
     true_neg = torch.zeros_like(pred_neg[:, 0], dtype=torch.long)
-    anch_neg = anchors[b_neg]
+    anch_neg = anchors[a_neg]
 
     pred_all = torch.cat([pred_pos, pred_neg], dim=0)
+    # NB: Convention the negatives are always 1D
     true_all = torch.cat([true_pos.view(-1), true_neg], dim=0).long()
     anch_all = torch.cat([anch_pos, anch_neg], dim=0)
     return pred_all, true_all, anch_all
