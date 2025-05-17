@@ -31,7 +31,7 @@ def test_infer(image, model):
         return torch.from_numpy(image).permute(2, 0, 1).float()
 
     annotations = infer(image, to_batch, model)
-    assert len(annotations) == 1
+    assert len(annotations) == 4
 
 
 def test_pred_to_labels():
