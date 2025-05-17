@@ -14,28 +14,16 @@ def image():
 
 
 @pytest.fixture
-def model(batch_size=1, n_anchors=10, n_classes=2):
+def model():
     mock_model = Mock()
-    mock_model.priors = torch.rand(n_anchors, 4)
-    classes = torch.rand(batch_size, n_anchors, n_classes)
-    classes[:, :, 1] = 0.6
-    mock_model.return_value = DetectionTargets(
-        classes=classes,
-        boxes=torch.rand(batch_size, n_anchors, 4),
+    mock_model.priors = torch.tensor(
+        [
+            [0.1, 0.1, 0.2, 0.2],
+            [0.2, 0.2, 0.3, 0.3],
+            [0.3, 0.3, 0.4, 0.4],
+        ]
     )
-    return mock_model
-
-
-def test_infer(image, model):
-    def to_batch(image):
-        return torch.from_numpy(image).permute(2, 0, 1).float()
-
-    annotations = infer(image, to_batch, model)
-    assert len(annotations) == 1
-
-
-def test_pred_to_labels():
-    y_pred = DetectionTargets(
+    mock_model.return_value = DetectionTargets(
         boxes=torch.tensor(
             [
                 [
@@ -56,18 +44,22 @@ def test_pred_to_labels():
         ),
     )
 
-    anchor = torch.tensor(
-        [
-            [0.1, 0.1, 0.2, 0.2],
-            [0.2, 0.2, 0.3, 0.3],
-            [0.3, 0.3, 0.4, 0.4],
-        ]
-    )
+    return mock_model
+
+
+def test_infer(image, model):
+    def to_batch(image):
+        return torch.from_numpy(image).permute(2, 0, 1).float()
+
+    annotations = infer(image, to_batch, model)
+    assert len(annotations) == 2
+
+
+def test_pred_to_labels(image, model):
+    y_pred = model(image)
     samples = pred_to_labels(
         y_pred,
-        anchor,
+        model.priors,
     )
-    assert len(samples) == 2
-    assert len(samples[0].annotations) == 1
-    assert len(samples[1].annotations) == 1
-
+    assert len(samples) == 1
+    assert len(samples[0].annotations) == 2
