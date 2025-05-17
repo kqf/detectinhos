@@ -24,7 +24,7 @@ def pred_to_labels(
     anchors: torch.Tensor,
     variances: tuple[float, float] = (0.1, 0.2),
     nms_threshold: float = 0.4,
-    confidence_threshold: float = 0.1,
+    confidence_threshold: float = 0.5,
 ) -> list[Sample]:
     confidence = torch.nn.functional.softmax(y_pred.classes, dim=-1)
     total: list[Sample] = []
@@ -37,8 +37,10 @@ def pred_to_labels(
         # NB: it's desired to start class_ids from 0,
         # 0 is for background it's not included
         scores = confidence[batch_id][:, 1:]
+        print(scores)
 
         valid_index = torch.where((scores > confidence_threshold).any(-1))[0]
+        print(valid_index, "<")
 
         # NMS doesn't accept fp16 inputs
         boxes_pred = boxes_pred[valid_index].float()

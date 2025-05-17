@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from unittest.mock import Mock
 
 import numpy as np
@@ -36,9 +35,8 @@ def test_infer(image, model):
 
 
 def test_pred_to_labels():
-    @dataclass
-    class DummyPred:
-        boxes = torch.tensor(
+    y_pred = DetectionTargets(
+        boxes=torch.tensor(
             [
                 [
                     [0.1, 0.1, 0.2, 0.2],
@@ -46,19 +44,19 @@ def test_pred_to_labels():
                     [0.3, 0.3, 0.4, 0.4],
                 ]
             ]
-        )
-        classes = torch.tensor(
+        ),
+        classes=torch.tensor(
             [
                 [
-                    [0.1, 2.0],
-                    [0.1, 0.05],
-                    [0.1, 3.0],
+                    [0.0, 0.8],
+                    [0.9, 0.00],
+                    [0.0, 0.9],
                 ]
             ]
-        )
+        ),
+    )
 
-    dummy_y_pred = DummyPred()
-    dummy_anchors = torch.tensor(
+    anchor = torch.tensor(
         [
             [0.1, 0.1, 0.2, 0.2],
             [0.2, 0.2, 0.3, 0.3],
@@ -66,7 +64,9 @@ def test_pred_to_labels():
         ]
     )
     samples = pred_to_labels(
-        dummy_y_pred,
-        dummy_anchors,
+        y_pred,
+        anchor,
     )
-    assert len(samples) == 3
+    assert len(samples) == 2
+    assert len(samples[0].annotations) == 1
+    assert len(samples[1].annotations) == 1
