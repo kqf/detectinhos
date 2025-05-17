@@ -1,10 +1,11 @@
+from dataclasses import dataclass
 from unittest.mock import Mock
 
 import numpy as np
 import pytest
 import torch
 
-from detectinhos.inference import infer
+from detectinhos.inference import infer, pred_to_labels
 from detectinhos.vanilla import DetectionTargets
 
 
@@ -32,3 +33,40 @@ def test_infer(image, model):
 
     annotations = infer(image, to_batch, model)
     assert len(annotations) == 1
+
+
+def test_pred_to_labels():
+    @dataclass
+    class DummyPred:
+        boxes = torch.tensor(
+            [
+                [
+                    [0.1, 0.1, 0.2, 0.2],
+                    [0.2, 0.2, 0.3, 0.3],
+                    [0.3, 0.3, 0.4, 0.4],
+                ]
+            ]
+        )
+        classes = torch.tensor(
+            [
+                [
+                    [0.1, 2.0],
+                    [0.1, 0.05],
+                    [0.1, 3.0],
+                ]
+            ]
+        )
+
+    dummy_y_pred = DummyPred()
+    dummy_anchors = torch.tensor(
+        [
+            [0.1, 0.1, 0.2, 0.2],
+            [0.2, 0.2, 0.3, 0.3],
+            [0.3, 0.3, 0.4, 0.4],
+        ]
+    )
+    samples = pred_to_labels(
+        dummy_y_pred,
+        dummy_anchors,
+    )
+    assert len(samples) == 3
