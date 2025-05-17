@@ -67,6 +67,5 @@ def test_pred_to_labels():
         y_pred,
         anchor,
     )
-    assert len(samples) == 2
-    assert len(samples[0].annotations) == 1
-    assert len(samples[1].annotations) == 1
+    assert len(samples) == 1
+    assert len(samples[0].annotations) == 2

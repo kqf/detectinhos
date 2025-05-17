@@ -57,7 +57,7 @@ def pred_to_labels(
             label_pred_.reshape(-1, 1).tolist(),
             probs_pred_.reshape(-1, 1).tolist(),
         )
-        total.extend(
+        total.append(
             Sample(
                 file_name="inference",
                 annotations=[
@@ -66,9 +66,9 @@ def pred_to_labels(
                         label=label,
                         score=score,
                     )
+                    for box, label, score in predictions
                 ],
             )
-            for box, label, score in predictions
         )
     return total
 
