@@ -34,24 +34,26 @@ def pred_to_labels(
             anchors,
             variances,
         )
-        # NB: it's desired to start class_ids from 0,
+        # NB: Convention it's desired to start class_ids from 0,
         # 0 is for background it's not included
-        scores = confidence[batch_id][:, 1:]
-        print(scores)
+        score = confidence[batch_id][:, 1:]
+        print(score)
 
-        valid_index = torch.where((scores > confidence_threshold).any(-1))[0]
+        valid_index = torch.where((score > confidence_threshold).any(-1))[0]
         print(valid_index, "<")
 
         # NMS doesn't accept fp16 inputs
-        boxes_pred = boxes_pred[valid_index].float()
-        scores = scores[valid_index].float()
-        probs_pred, label_pred = scores.max(dim=-1)
+        boxes_cand = boxes_pred[valid_index].float()
+        probs_cand, _ = score[valid_index].float().max(dim=-1)
 
         # do NMS
-        keep = nms(boxes_pred, probs_pred, nms_threshold)
-        boxes_pred_ = boxes_pred[keep, :].cpu().detach().numpy()
-        probs_pred_ = probs_pred[keep].cpu().detach().numpy()
-        label_pred_ = label_pred[keep].cpu().detach().numpy()
+        keep = nms(boxes_cand, probs_cand, nms_threshold)
+        valid = valid_index[keep]
+
+        probs_pred, label_pred = score[valid].float().max(dim=-1)
+        label_pred_ = label_pred.cpu().detach().numpy()
+        probs_pred_ = probs_pred.cpu().detach().numpy()
+        boxes_pred_ = boxes_pred[valid].cpu().detach().numpy()
         predictions = zip(
             boxes_pred_.tolist(),
             label_pred_.reshape(-1, 1).tolist(),
