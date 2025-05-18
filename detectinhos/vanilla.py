@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from detectinhos.batch import BatchElement
-from detectinhos.sample import Sample
+from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
 
@@ -29,6 +29,41 @@ T = TypeVar(
 class DetectionTargets(Generic[T]):
     boxes: T
     classes: T
+
+    def to_samples(self, batch_id: int, valid: torch.Tensor) -> Sample:
+        # NB: Convention it's desired to start class_ids from 0,
+        # 0 is for background it's not included
+
+        if isinstance(self.boxes, WeightedLoss) or isinstance(
+            self.classes, WeightedLoss
+        ):
+            raise RuntimeError("You should not call this on losses")
+
+        confidence = torch.nn.functional.softmax(self.classes, dim=-1)
+        score = confidence[batch_id][:, 1:]
+
+        probs_pred, label_pred = score[valid].float().max(dim=-1)
+        label_pred_ = label_pred.cpu().detach().numpy()
+        probs_pred_ = probs_pred.cpu().detach().numpy()
+        boxes_pred_ = self.boxes[batch_id, valid].cpu().detach().numpy()
+
+        # Batch the predictions
+        predictions = zip(
+            boxes_pred_.tolist(),
+            label_pred_.reshape(-1, 1).tolist(),
+            probs_pred_.reshape(-1, 1).tolist(),
+        )
+        return Sample(
+            file_name="inference",
+            annotations=[
+                Annotation(
+                    bbox=box,
+                    label=label,
+                    score=score,
+                )
+                for box, label, score in predictions
+            ],
+        )
 
 
 def to_targets(
