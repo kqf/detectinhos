@@ -29,7 +29,7 @@ class BatchElement(Generic[T]):
 class Batch:
     files: list[str]
     image: torch.Tensor
-    true: HasBoxesAndClasses[torch.Tensor]
+    true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
 
 
