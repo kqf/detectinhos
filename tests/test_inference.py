@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import torch
 
+from detectinhos.batch import Batch
 from detectinhos.inference import infer, pred_to_labels
 from detectinhos.vanilla import DetectionTargets
 
@@ -48,8 +49,11 @@ def model():
 
 
 def test_infer(image, model):
-    def to_batch(image):
-        return torch.from_numpy(image).permute(2, 0, 1).float()
+    def to_batch(image) -> Batch:
+        return Batch(
+            files=["fake.png"],
+            image=torch.from_numpy(image).permute(2, 0, 1).float(),
+        )
 
     annotations = infer(image, to_batch, model)
     assert len(annotations) == 2
