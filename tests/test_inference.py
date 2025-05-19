@@ -61,9 +61,9 @@ def test_infer(image, model):
 
 def test_pred_to_labels(image, model):
     y_pred = model(image)
-    samples = pred_to_labels(
-        y_pred,
+    # sourcery skip: no-loop-in-tests
+    indices = pred_to_labels(
+        y_pred[0],
         model.priors,
     )
-    assert len(samples) == 1
-    assert len(samples[0].annotations) == 2
+    assert indices.detach().cpu().numpy().tolist() == [2, 0]
