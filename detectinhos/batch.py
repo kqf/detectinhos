@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import Callable, Generic, List, Protocol, TypeVar
+from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -30,6 +30,7 @@ class Batch:
     files: list[str]
     image: torch.Tensor
     true: HasBoxesAndClasses[torch.Tensor]
+    pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
 
 
 def detection_collate(
