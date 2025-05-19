@@ -76,7 +76,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
 
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
-        y_pred: DetectionTargets = model(batch.image)
-        batch.targets.classes = batch.targets.classes.long()
-        losses = loss(y_pred, batch.targets)
+        batch.pred = model(batch.image)
+        batch.true.classes = batch.true.classes.long()
+        losses = loss(batch.pred, batch.true)
         assert "loss" in losses
