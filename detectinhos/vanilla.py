@@ -30,7 +30,18 @@ class DetectionTargets(Generic[T]):
     boxes: T
     classes: T
 
-    def to_annotations(self, valid: torch.Tensor) -> list[Annotation]:
+    def __getitem__(self, idx):
+        if isinstance(self.boxes, WeightedLoss) or isinstance(
+            self.classes, WeightedLoss
+        ):
+            raise RuntimeError("You should not call this on losses")
+
+        return DetectionTargets(
+            boxes=self.boxes[idx],
+            classes=self.classes[idx],
+        )
+
+    def to_annotations(self) -> list[Annotation]:
         # NB: Convention it's desired to start class_ids from 0,
         # 0 is for background it's not included
 
@@ -39,13 +50,17 @@ class DetectionTargets(Generic[T]):
         ):
             raise RuntimeError("You should not call this on losses")
 
-        confidence = torch.nn.functional.softmax(self.classes, dim=-1)
+        # Convert boxes and classes to torch tensors if they aren't already
+        boxes = torch.as_tensor(self.boxes)
+        classes = torch.as_tensor(self.classes)
+
+        confidence = torch.nn.functional.softmax(classes, dim=-1)
         score = confidence[:, 1:]
 
-        probs_pred, label_pred = score[valid].float().max(dim=-1)
+        probs_pred, label_pred = score.float().max(dim=-1)
         label_pred_ = label_pred.cpu().detach().numpy()
         probs_pred_ = probs_pred.cpu().detach().numpy()
-        boxes_pred_ = self.boxes[valid].cpu().detach().numpy()
+        boxes_pred_ = boxes.cpu().detach().numpy()
 
         # Batch the predictions
         predictions = zip(
