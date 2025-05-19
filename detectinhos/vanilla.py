@@ -114,5 +114,5 @@ class DetectionDataset(torch.utils.data.Dataset):
         return BatchElement(
             file=sample.file_name,
             image=image_t,
-            targets=targets_t,
+            true=targets_t,
         )
