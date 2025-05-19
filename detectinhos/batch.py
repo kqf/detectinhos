@@ -26,10 +26,10 @@ class BatchElement(Generic[T]):
 
 # Stacked BatchElements along batch dimension
 @dataclass
-class Batch(Generic[T]):
+class Batch:
     files: list[str]
     image: torch.Tensor
-    true: HasBoxesAndClasses[T]
+    true: HasBoxesAndClasses[torch.Tensor]
 
 
 def detection_collate(
