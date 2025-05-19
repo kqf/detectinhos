@@ -4,7 +4,7 @@ from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from detectinhos.sample import Sample
+from detectinhos.sample import Annotation, Sample
 
 T = TypeVar("T")
 
@@ -15,6 +15,12 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
 
     @classmethod
     def is_dataclass(cls) -> bool:
+        ...
+
+    def __getitem__(self, idx) -> "HasBoxesAndClasses":
+        ...
+
+    def to_annotations(self) -> list[Annotation]:
         ...
 
 
