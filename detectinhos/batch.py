@@ -4,6 +4,8 @@ from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from detectinhos.sample import Annotation, Sample
+
 T = TypeVar("T")
 
 
@@ -13,6 +15,12 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
 
     @classmethod
     def is_dataclass(cls) -> bool:
+        ...
+
+    def __getitem__(self, idx) -> "HasBoxesAndClasses":
+        ...
+
+    def to_annotations(self) -> list[Annotation]:
         ...
 
 
@@ -29,8 +37,24 @@ class BatchElement(Generic[T]):
 class Batch:
     files: list[str]
     image: torch.Tensor
-    true: HasBoxesAndClasses[torch.Tensor]
+    true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
+
+    def pred_to_samples(self, select_valid_indices: Callable) -> list[Sample]:
+        if self.pred is None:
+            return []
+
+        output = []
+        for batch_id, file in enumerate(self.files):
+            pred = self.pred[batch_id]
+            valid = select_valid_indices(pred)
+            output.append(
+                Sample(
+                    file_name=file,
+                    annotations=pred[valid].to_annotations(),
+                )
+            )
+        return output
 
 
 def detection_collate(
