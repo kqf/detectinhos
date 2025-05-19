@@ -6,7 +6,7 @@ import torch
 from torchvision.ops import nms
 
 from detectinhos.encode import decode
-from detectinhos.sample import Annotation, Sample
+from detectinhos.sample import Annotation
 
 T = TypeVar("T")
 
@@ -50,7 +50,7 @@ def infer(
     model,
 ) -> list[Annotation]:
     batch = to_batch(image)
-    batch.y_pred = model(batch.image.unsqueeze(0))
+    batch.pred = model(batch.image.unsqueeze(0))
     samples = batch.pred_to_samples(
         partial(
             pred_to_labels,
