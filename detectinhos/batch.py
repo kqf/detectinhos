@@ -21,7 +21,7 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
 class BatchElement(Generic[T]):
     file: str
     image: torch.Tensor
-    targets: HasBoxesAndClasses[T]
+    true: HasBoxesAndClasses[T]
 
 
 # Stacked BatchElements along batch dimension
@@ -29,7 +29,7 @@ class BatchElement(Generic[T]):
 class Batch(Generic[T]):
     files: list[str]
     image: torch.Tensor
-    targets: HasBoxesAndClasses[T]
+    true: HasBoxesAndClasses[T]
 
 
 def detection_collate(
@@ -39,11 +39,11 @@ def detection_collate(
     images = torch.stack([torch.Tensor(sample.image) for sample in batch])
     targets = {
         field.name: pad_sequence(
-            [torch.Tensor(getattr(e.targets, field.name)) for e in batch],
+            [torch.Tensor(getattr(e.true, field.name)) for e in batch],
             batch_first=True,
             padding_value=0,
         )
-        for field in fields(batch[0].targets)
+        for field in fields(batch[0].true)
     }
     files = [sample.file for sample in batch]
     return Batch(files, images, to_targets(**targets))
