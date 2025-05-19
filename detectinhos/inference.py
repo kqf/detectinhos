@@ -53,9 +53,10 @@ def pred_to_labels(
 
 def infer(
     image: np.ndarray,
-    to_batch: Callable[np.ndarray, torch.Tensor],  # type: ignore
+    to_batch: Callable,
     model,
 ) -> list[Annotation]:
-    y_pred = model(to_batch(image).unsqueeze(0))
-    samples = pred_to_labels(y_pred, model.priors)
+    batch = to_batch(image)
+    batch.y_pred = model(batch.image.unsqueeze(0))
+    samples = pred_to_labels(batch.y_pred, model.priors)
     return samples[0].annotations
