@@ -37,6 +37,7 @@ dependencies = [
     "dacite",
     "dataclasses-json",
     "torchvision",
+    "mean-average-precision",
 ]
 readme = "README.rst"
 
