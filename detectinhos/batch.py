@@ -13,10 +13,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     boxes: T
     classes: T
 
-    @classmethod
-    def is_dataclass(cls) -> bool:
-        ...
-
     def __getitem__(self, idx) -> "HasBoxesAndClasses":
         ...
 
