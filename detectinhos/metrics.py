@@ -33,23 +33,25 @@ def prepare_outputs(
     return total
 
 
-def build_outputs(
-    num_classes: int,
-    batch: Batch,
-    inference: Callable,
-) -> Batch:
-    # While calculating mAP, always start with 0
-    # We don't calculate the metrics for background class
+class MeanAveragePrecision:
+    def __init__(
+        self,
+        num_classes: int,
+        inference: Callable,
+    ):
+        # NB: Convention, while calculating mAP, always start with 0
+        # We don't calculate the metrics for background class
+        self.metric_fn = MetricBuilder.build_evaluation_metric(
+            "map_2d",
+            async_mode=False,
+            num_classes=num_classes - 1,
+        )
+        self.inference = inference
 
-    metric_fn = MetricBuilder.build_evaluation_metric(
-        "map_2d",
-        async_mode=False,
-        num_classes=num_classes - 1,
-    )
-    outputs = prepare_outputs(
-        batch=batch,
-        inference=inference,
-    )
-    for perimage in outputs:
-        metric_fn.add(*perimage)
-    return batch
+    def add(self, batch: Batch) -> None:
+        outputs = prepare_outputs(
+            batch=batch,
+            inference=self.inference,
+        )
+        for perimage in outputs:
+            self.metric_fn.add(*perimage)
