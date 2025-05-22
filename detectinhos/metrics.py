@@ -13,13 +13,13 @@ def prepare_outputs(
     total = []
     for true_, pred_ in zip(
         batch.true,
-        batch.pred_to_samples(inference),
+        batch.pred_to_numpy(inference),
     ):  # type: ignore
         pred_sample = np.concatenate(
             (
                 pred_.boxes,
-                pred_.label.reshape(-1, 1),
-                pred_.score.reshape(-1, 1),
+                pred_.classes,
+                pred_.scores,
             ),
             axis=1,
         )
