@@ -29,6 +29,7 @@ T = TypeVar(
 class DetectionTargets(Generic[T]):
     boxes: T
     classes: T
+    scores: Optional[T] = None
 
     def __getitem__(self, idx):
         if isinstance(self.boxes, WeightedLoss) or isinstance(
@@ -41,7 +42,7 @@ class DetectionTargets(Generic[T]):
             classes=self.classes[idx],
         )
 
-    def to_annotations(self) -> list[Annotation]:
+    def to_numpy(self) -> "DetectionTargets[np.ndarray]":
         # NB: Convention it's desired to start class_ids from 0,
         # 0 is for background it's not included
 
@@ -58,15 +59,19 @@ class DetectionTargets(Generic[T]):
         score = confidence[:, 1:]
 
         probs_pred, label_pred = score.float().max(dim=-1)
-        label_pred_ = label_pred.cpu().detach().numpy()
-        probs_pred_ = probs_pred.cpu().detach().numpy()
-        boxes_pred_ = boxes.cpu().detach().numpy()
 
-        # Batch the predictions
+        return DetectionTargets(
+            classes=label_pred.cpu().detach().numpy().reshape(-1, 1),
+            scores=probs_pred.cpu().detach().numpy().reshape(-1, 1),
+            boxes=boxes.cpu().detach().numpy(),
+        )
+
+    def to_annotations(self) -> list[Annotation]:
+        predicted = self.to_numpy()
         predictions = zip(
-            boxes_pred_.tolist(),
-            label_pred_.reshape(-1, 1).tolist(),
-            probs_pred_.reshape(-1, 1).tolist(),
+            predicted.boxes.tolist(),
+            predicted.classes.tolist(),
+            predicted.scores.tolist(),  # type: ignore
         )
         return [
             Annotation(
