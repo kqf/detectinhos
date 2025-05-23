@@ -46,11 +46,12 @@ def batch(true, pred) -> Batch:
         image=torch.rand(480, 640, 3, dtype=torch.float32),
         true=DetectionTargets(
             boxes=torch.Tensor(true[:, :4]).unsqueeze(0),
-            classes=torch.Tensor(true[:, 4]).unsqueeze(0),
+            # We start class_ids from 1
+            classes=torch.Tensor(true[:, 4]).unsqueeze(0) + 1,
         ),
         pred=DetectionTargets(
-            boxes=torch.Tensor(pred[:, :4]).unsqueeze(0).unsqueeze(0),
-            classes=torch.Tensor(pred[:, 4:6]).unsqueeze(0).unsqueeze(0),
+            boxes=torch.Tensor(pred[:, :4]).unsqueeze(0),
+            classes=torch.Tensor(pred[:, 4:6]).unsqueeze(0),
         ),
     )
 
