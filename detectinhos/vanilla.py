@@ -56,13 +56,13 @@ class DetectionTargets(Generic[T]):
         classes = torch.as_tensor(self.classes)
 
         confidence = torch.nn.functional.softmax(classes, dim=-1)
-        score = confidence[:, 1:]
+        score = confidence[:, :, 1:]
 
         probs_pred, label_pred = score.float().max(dim=-1)
 
         return DetectionTargets(
-            classes=label_pred.cpu().detach().numpy().reshape(-1, 1),
-            scores=probs_pred.cpu().detach().numpy().reshape(-1, 1),
+            classes=label_pred.cpu().detach().numpy(),
+            scores=probs_pred.cpu().detach().numpy(),
             boxes=boxes.cpu().detach().numpy(),
         )
 
