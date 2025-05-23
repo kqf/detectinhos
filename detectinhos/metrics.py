@@ -18,17 +18,17 @@ def prepare_outputs(
         pred_sample = np.concatenate(
             (
                 pred_.boxes,
-                pred_.classes,
-                pred_.scores,
+                pred_.classes.reshape(-1, 1),
+                pred_.scores.reshape(-1, 1),
             ),
             axis=1,
         )
 
-        true_sample = np.zeros((true_.shape[0], 7), dtype=np.float32)
+        true_sample = np.zeros((true_.classes.shape[0], 7), dtype=np.float32)
         true_sample[:, :4] = true_.boxes
         # While calculating mAP, always start with 0
         # We don't calculate the metrics for background class
-        true_sample[:, 4] = true_.score - 1
+        true_sample[:, 4] = true_.classes - 1
         total.append((pred_sample, true_sample))
     return total
 
