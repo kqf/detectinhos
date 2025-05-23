@@ -64,7 +64,7 @@ class Batch:
             return []
 
         output = []
-        for batch_id, file in enumerate(self.files):
+        for batch_id, _ in enumerate(self.files):
             pred = self.pred[batch_id]
             valid = select_valid_indices(pred)
             output.append(pred[valid].to_numpy())

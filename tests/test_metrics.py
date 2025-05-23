@@ -50,7 +50,7 @@ def batch(true, pred) -> Batch:
         ),
         pred=DetectionTargets(
             boxes=torch.Tensor(pred[:, :4]).unsqueeze(0).unsqueeze(0),
-            classes=torch.Tensor(pred[:, 4:5]).unsqueeze(0).unsqueeze(0),
+            classes=torch.Tensor(pred[:, 4:6]).unsqueeze(0).unsqueeze(0),
         ),
     )
 
