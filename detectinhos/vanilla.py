@@ -89,16 +89,19 @@ def to_targets(
 ) -> DetectionTargets[np.ndarray]:
     bboxes = []
     label_ids = []
+    scores = []
 
     for label in sample.annotations:
         bboxes.append(label.bbox)
 
         label_id = mapping.get(label.label, 0)
         label_ids.append([label_id])
+        scores.append([label.score])
 
     return DetectionTargets(
         boxes=np.array(bboxes),
         classes=np.array(label_ids, dtype=np.int64),
+        scores=np.array(scores, dtype=np.float32),
     )
 
 
