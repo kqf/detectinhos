@@ -55,3 +55,6 @@ class MeanAveragePrecision:
         )
         for perimage in outputs:
             self.metric_fn.add(*perimage)
+
+    def value(self, iou_thresholds: float = 0.5) -> dict[str, float]:
+        return self.metric_fn.value(iou_thresholds=0.5)
