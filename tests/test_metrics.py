@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 import pytest
 import torch
@@ -40,7 +42,7 @@ def pred():
 
 
 @pytest.fixture
-def batch(true, pred) -> Batch:
+def batch(true: np.ndarray, pred: np.ndarray) -> Batch:
     return Batch(
         files=["fake.png"],
         image=torch.rand(480, 640, 3, dtype=torch.float32),
@@ -64,7 +66,10 @@ def inference():
     return inference
 
 
-def test_mean_average_precision_add(batch, inference):
+def test_mean_average_precision_add(
+    batch: Batch,
+    inference: Callable[..., torch.Tensor],
+):
     map_metric = MeanAveragePrecision(num_classes=2, inference=inference)
     map_metric.add(batch)
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
