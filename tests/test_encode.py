@@ -1,7 +1,12 @@
 import pytest
 import torch
 
-from detectinhos.encode import decode, decode_landmarks, encode, encode_landmarks
+from detectinhos.encode import (
+    decode,
+    decode_landmarks,
+    encode,
+    encode_landmarks,
+)
 
 
 @pytest.fixture
