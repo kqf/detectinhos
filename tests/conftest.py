@@ -4,6 +4,7 @@ import pathlib
 import cv2
 import numpy as np
 import pytest
+import torch
 
 
 @pytest.fixture
@@ -77,3 +78,23 @@ def pred():
             [413, 390, 515, 459, 0, 0.619459],
         ]
     )
+
+
+@pytest.fixture
+def boxes_true(true) -> torch.Tensor:
+    return torch.Tensor(true[:, :4]).unsqueeze(0)
+
+
+@pytest.fixture
+def classes_true(true) -> torch.Tensor:
+    return torch.Tensor(true[:, 4]).unsqueeze(0) + 1
+
+
+@pytest.fixture
+def boxes_pred(pred) -> torch.Tensor:
+    return torch.Tensor(pred[:, :4]).unsqueeze(0)
+
+
+@pytest.fixture
+def classes_pred(pred) -> torch.Tensor:
+    return torch.Tensor(pred[:, 4:6]).unsqueeze(0)
