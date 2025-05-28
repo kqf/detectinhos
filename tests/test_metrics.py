@@ -9,7 +9,6 @@ from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import DetectionTargets
 
 
-@pytest.fixture
 def batch(true: np.ndarray, pred: np.ndarray) -> Batch:
     return Batch(
         files=["fake.png"],
