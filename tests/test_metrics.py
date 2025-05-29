@@ -1,6 +1,5 @@
 from typing import Callable
 
-import numpy as np
 import pytest
 import torch
 
@@ -10,18 +9,22 @@ from detectinhos.vanilla import DetectionTargets
 
 
 @pytest.fixture
-def batch(true: np.ndarray, pred: np.ndarray) -> Batch:
+def batch(
+    boxes_true: torch.Tensor,
+    boxes_pred: torch.Tensor,
+    classes_true: torch.Tensor,
+    classes_pred: torch.Tensor,
+) -> Batch:
     return Batch(
         files=["fake.png"],
         image=torch.rand(480, 640, 3, dtype=torch.float32),
         true=DetectionTargets(
-            boxes=torch.Tensor(true[:, :4]).unsqueeze(0),
-            # We start class_ids from 1
-            classes=torch.Tensor(true[:, 4]).unsqueeze(0) + 1,
+            boxes=boxes_true,
+            classes=classes_true,
         ),
         pred=DetectionTargets(
-            boxes=torch.Tensor(pred[:, :4]).unsqueeze(0),
-            classes=torch.Tensor(pred[:, 4:6]).unsqueeze(0),
+            boxes=boxes_pred,
+            classes=classes_pred,
         ),
     )
 
