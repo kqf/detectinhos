@@ -1,5 +1,6 @@
 from typing import Callable
 
+import numpy as np
 import pytest
 import torch
 
@@ -10,6 +11,7 @@ from detectinhos.vanilla import DetectionTargets
 
 @pytest.fixture
 def batch(
+    image: np.ndarray,
     boxes_true: torch.Tensor,
     boxes_pred: torch.Tensor,
     classes_true: torch.Tensor,
