@@ -1,6 +1,5 @@
 from typing import Callable
 
-import numpy as np
 import pytest
 import torch
 
@@ -11,10 +10,10 @@ from detectinhos.vanilla import DetectionTargets
 
 @pytest.fixture
 def batch(
-    boxes_true: np.ndarray,
-    boxes_pred: np.ndarray,
-    classes_true: np.ndarray,
-    classes_pred: np.ndarray,
+    boxes_true: torch.Tensor,
+    boxes_pred: torch.Tensor,
+    classes_true: torch.Tensor,
+    classes_pred: torch.Tensor,
 ) -> Batch:
     return Batch(
         files=["fake.png"],
