@@ -98,3 +98,8 @@ def boxes_pred(pred) -> torch.Tensor:
 @pytest.fixture
 def classes_pred(pred) -> torch.Tensor:
     return torch.Tensor(pred[:, 4:6]).unsqueeze(0)
+
+
+@pytest.fixture
+def image(resolution: tuple[int, int] = (480, 640)) -> np.ndarray:
+    return np.random.randint(0, 255, resolution + (3,), dtype=np.uint8)
