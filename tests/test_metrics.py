@@ -19,7 +19,7 @@ def batch(
 ) -> Batch:
     return Batch(
         files=["fake.png"],
-        image=torch.rand(480, 640, 3, dtype=torch.float32),
+        image=torch.from_numpy(image),
         true=DetectionTargets(
             boxes=boxes_true,
             classes=classes_true,
