@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 import torch
 
+from detectinhos.anchors import anchors
+
 
 @pytest.fixture
 def annotations(tmp_path) -> pathlib.Path:
@@ -103,3 +105,13 @@ def classes_pred(pred) -> torch.Tensor:
 @pytest.fixture
 def image(resolution: tuple[int, int] = (480, 640)) -> np.ndarray:
     return np.random.randint(0, 255, resolution + (3,), dtype=np.uint8)
+
+
+@pytest.fixture
+def sample_anchors(image) -> torch.Tensor:
+    return anchors(
+        min_sizes=[[16, 32], [64, 128], [256, 512]],
+        steps=[8, 16, 32],
+        clip=False,
+        resolution=image.shape[:2],
+    )
