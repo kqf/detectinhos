@@ -105,7 +105,7 @@ def classes_pred(pred) -> torch.Tensor:
 @pytest.fixture
 def image(resolution: tuple[int, int] = (480, 640)) -> np.ndarray:
     return np.random.randint(0, 255, resolution + (3,), dtype=np.uint8)
-  
+
 
 @pytest.fixture
 def sample_anchors(image) -> torch.Tensor:
