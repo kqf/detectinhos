@@ -7,6 +7,7 @@ import pytest
 import torch
 
 from detectinhos.anchors import anchors
+from detectinhos.encode import encode
 
 
 @pytest.fixture
@@ -93,13 +94,25 @@ def classes_true(true) -> torch.Tensor:
 
 
 @pytest.fixture
-def boxes_pred(pred) -> torch.Tensor:
-    return torch.Tensor(pred[:, :4]).unsqueeze(0)
+def boxes_pred(pred, sample_anchors) -> torch.Tensor:
+    total = torch.zeros((sample_anchors.shape[0], 4), dtype=torch.float32)
+    total[: pred.shape[0]] = torch.Tensor(pred[:, :4])
+    return encode(
+        total,
+        sample_anchors,
+        variances=[0.1, 0.2],
+    ).unsqueeze(0)
 
 
 @pytest.fixture
-def classes_pred(pred) -> torch.Tensor:
-    return torch.Tensor(pred[:, 4:6]).unsqueeze(0)
+def classes_pred(pred, sample_anchors) -> torch.Tensor:
+    total = torch.zeros((sample_anchors.shape[0], 2), dtype=torch.float32)
+    # Everything is background
+    total[:, 0] = 1.0
+    # Except for the predictions
+    total[: pred.shape[0]] = torch.Tensor(pred[:, 4:6])
+    print(torch.Tensor(pred[:, 4:6]))
+    return total.unsqueeze(0)
 
 
 @pytest.fixture
