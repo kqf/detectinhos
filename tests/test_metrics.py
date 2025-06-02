@@ -32,9 +32,11 @@ def batch(
 
 
 @pytest.fixture
-def inference():
+def inference(pred):
+    n_good_predictions = pred.shape[0]
+
     def inference(pred: DetectionTargets) -> torch.Tensor:
-        return torch.arange(pred.classes.shape[0])
+        return torch.arange(n_good_predictions)
 
     return inference
 
@@ -46,4 +48,4 @@ def test_mean_average_precision_add(
     map_metric = MeanAveragePrecision(num_classes=2, inference=inference)
     map_metric.add(batch)
     # TODO: Fix me later
-    # assert map_metric.value()["mAP"] == pytest.approx(0.5)
+    assert map_metric.value()["mAP"] == pytest.approx(0.5)
