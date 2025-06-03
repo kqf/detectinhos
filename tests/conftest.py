@@ -7,6 +7,7 @@ import pytest
 import torch
 
 from detectinhos.anchors import anchors
+from detectinhos.encode import encode
 
 # from detectinhos.encode import encode
 
