@@ -11,6 +11,8 @@ from detectinhos.encode import encode
 
 # from detectinhos.encode import encode
 
+# from detectinhos.encode import encode
+
 
 @pytest.fixture
 def annotations(tmp_path) -> pathlib.Path:
