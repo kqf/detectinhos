@@ -48,4 +48,3 @@ def test_mean_average_precision_add(
     map_metric = MeanAveragePrecision(num_classes=2, inference=inference)
     map_metric.add(batch)
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
-
