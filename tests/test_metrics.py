@@ -5,6 +5,7 @@ import pytest
 import torch
 
 from detectinhos.batch import Batch
+from detectinhos.encode import decode
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import DetectionTargets
 
@@ -32,10 +33,11 @@ def batch(
 
 
 @pytest.fixture
-def inference(pred):
+def inference(pred, sample_anchors):
     n_good_predictions = pred.shape[0]
 
     def inference(pred: DetectionTargets) -> torch.Tensor:
+        pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
         return torch.arange(n_good_predictions)
 
     return inference
