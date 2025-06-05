@@ -23,8 +23,6 @@ def prepare_outputs(
             ),
             axis=1,
         )
-        print(pred_sample)
-
         true_sample = np.zeros((true_.classes.shape[0], 7), dtype=np.float32)
         true_sample[:, :4] = true_.boxes
         # While calculating mAP, always start with 0
