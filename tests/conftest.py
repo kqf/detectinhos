@@ -10,7 +10,6 @@ from detectinhos.anchors import anchors
 from detectinhos.encode import encode
 
 
-
 @pytest.fixture
 def annotations(tmp_path) -> pathlib.Path:
     image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
