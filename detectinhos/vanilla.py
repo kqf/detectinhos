@@ -71,7 +71,10 @@ def to_numpy(
     )
 
 
-def to_sample(x: torch.Tensor, file_name: str = "") -> Sample:
+def to_sample(
+    x: DetectionTargets[torch.Tensor],
+    file_name: str = "",
+) -> Sample:
     predicted = to_numpy(x, file_name)
     predictions = zip(
         predicted.boxes.tolist(),
