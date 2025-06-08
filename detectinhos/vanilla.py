@@ -45,6 +45,7 @@ class DetectionTargets(Generic[T]):
 
 def to_numpy(
     x: DetectionTargets[torch.Tensor],
+    file_name: str = "",
 ) -> DetectionTargets[np.ndarray]:
     # NB: Convention it's desired to start class_ids from 0,
     # 0 is for background it's not included

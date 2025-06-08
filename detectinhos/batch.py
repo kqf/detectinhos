@@ -1,12 +1,8 @@
 from dataclasses import dataclass, fields
 from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 
-import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
-
-from detectinhos.sample import Sample
-from detectinhos.vanilla import to_numpy, to_sample
 
 T = TypeVar("T")
 
@@ -36,32 +32,6 @@ class Batch:
     true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
     # Is optional before forward pass
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
-
-    def pred_to_samples(self, select_valid_indices: Callable) -> list[Sample]:
-        if self.pred is None:
-            return []
-
-        output = []
-        for batch_id, file in enumerate(self.files):
-            pred = self.pred[batch_id]
-            valid = select_valid_indices(pred)
-            output.append(to_sample(pred[valid], file_name=file))
-
-        return output
-
-    def pred_to_numpy(
-        self,
-        select_valid_indices: Callable,
-    ) -> list[HasBoxesAndClasses[np.ndarray]]:
-        if self.pred is None:
-            return []
-
-        output = []
-        for batch_id, _ in enumerate(self.files):
-            pred = self.pred[batch_id]
-            valid = select_valid_indices(pred)
-            output.append(to_numpy(pred[valid]))
-        return output
 
 
 def detection_collate(
