@@ -51,7 +51,7 @@ OT = TypeVar("OT")
 def infer_on_batch(
     batch: Batch,
     select_valid_indices: Callable,
-    to_sample: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
+    outputs: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
 ) -> list[OT]:
     if batch.pred is None:
         return []
@@ -60,7 +60,7 @@ def infer_on_batch(
     for batch_id, file in enumerate(batch.files):
         pred = batch.pred[batch_id]
         valid = select_valid_indices(pred)
-        output.append(to_sample(pred[valid], file))
+        output.append(outputs(pred[valid], file))
 
     return output
 
@@ -79,6 +79,6 @@ def infer(
             pred_to_labels,
             anchors=model.priors,
         ),
-        to_sample=to_sample,
+        outputs=to_sample,
     )
     return samples[0].annotations
