@@ -54,7 +54,7 @@ def infer_on_batch(
     outputs: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
 ) -> list[OT]:
     if batch.pred is None:
-        return []
+        raise ValueError("Cannot perform inference: batch.pred is empty.")
 
     output = []
     for batch_id, file in enumerate(batch.files):
