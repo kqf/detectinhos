@@ -5,7 +5,8 @@ import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from detectinhos.sample import Annotation, Sample
+from detectinhos.sample import Sample
+from detectinhos.vanilla import to_annotations, to_numpy
 
 T = TypeVar("T")
 
@@ -15,12 +16,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
     def __getitem__(self, idx) -> "HasBoxesAndClasses":
-        ...
-
-    def to_annotations(self) -> list[Annotation]:
-        ...
-
-    def to_numpy(self) -> "HasBoxesAndClasses[np.ndarray]":
         ...
 
 
@@ -51,7 +46,7 @@ class Batch:
             output.append(
                 Sample(
                     file_name=file,
-                    annotations=pred[valid].to_annotations(),
+                    annotations=to_annotations(pred[valid]),
                 )
             )
         return output
@@ -67,7 +62,7 @@ class Batch:
         for batch_id, _ in enumerate(self.files):
             pred = self.pred[batch_id]
             valid = select_valid_indices(pred)
-            output.append(pred[valid].to_numpy())
+            output.append(to_numpy(pred[valid]))
         return output
 
 
