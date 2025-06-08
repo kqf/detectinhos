@@ -70,21 +70,24 @@ def to_numpy(
     )
 
 
-def to_annotations(x: torch.Tensor) -> list[Annotation]:
+def to_sample(x: torch.Tensor, file_name: str = "") -> Sample:
     predicted = x.to_numpy()
     predictions = zip(
         predicted.boxes.tolist(),
         predicted.classes.tolist(),
         predicted.scores.tolist(),  # type: ignore
     )
-    return [
-        Annotation(
-            bbox=box,
-            label=label,
-            score=score,
-        )
-        for box, label, score in predictions
-    ]
+    return Sample(
+        file_name=file_name,
+        annotations=[
+            Annotation(
+                bbox=box,
+                label=label,
+                score=score,
+            )
+            for box, label, score in predictions
+        ],
+    )
 
 
 def to_targets(

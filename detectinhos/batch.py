@@ -6,7 +6,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from detectinhos.sample import Sample
-from detectinhos.vanilla import to_annotations, to_numpy
+from detectinhos.vanilla import to_numpy, to_sample
 
 T = TypeVar("T")
 
@@ -32,7 +32,9 @@ class BatchElement(Generic[T]):
 class Batch:
     files: list[str]
     image: torch.Tensor
+    # Can be optional when we are doing inference
     true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
+    # Is optional before forward pass
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
 
     def pred_to_samples(self, select_valid_indices: Callable) -> list[Sample]:
@@ -43,12 +45,8 @@ class Batch:
         for batch_id, file in enumerate(self.files):
             pred = self.pred[batch_id]
             valid = select_valid_indices(pred)
-            output.append(
-                Sample(
-                    file_name=file,
-                    annotations=to_annotations(pred[valid]),
-                )
-            )
+            output.append(to_sample(pred[valid], file_name=file))
+
         return output
 
     def pred_to_numpy(
