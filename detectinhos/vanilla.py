@@ -72,7 +72,7 @@ def to_numpy(
 
 
 def to_sample(x: torch.Tensor, file_name: str = "") -> Sample:
-    predicted = x.to_numpy()
+    predicted = to_numpy(x, file_name)
     predictions = zip(
         predicted.boxes.tolist(),
         predicted.classes.tolist(),
