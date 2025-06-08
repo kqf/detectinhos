@@ -45,7 +45,7 @@ def inference(pred, sample_anchors):
         return infer_on_batch(
             batch=pred,
             select_valid_indices=pred_to_labels,
-            to_sample=to_numpy,  # type: ignore
+            outputs=to_numpy,  # type: ignore
         )
 
     return infer
