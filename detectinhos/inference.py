@@ -45,11 +45,14 @@ def pred_to_labels(
     return valid_index[keep]
 
 
+OT = TypeVar("OT")
+
+
 def infer_on_batch(
     batch: Batch,
     select_valid_indices: Callable,
-    to_sample: Callable[[HasBoxesAndClasses, str], Sample],
-) -> list[Sample]:
+    to_sample: Callable[[HasBoxesAndClasses, str], OT],
+) -> list[OT]:
     if batch.pred is None:
         return []
 
