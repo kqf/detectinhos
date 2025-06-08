@@ -42,45 +42,56 @@ class DetectionTargets(Generic[T]):
             classes=self.classes[idx],
         )
 
-    def to_numpy(self) -> "DetectionTargets[np.ndarray]":
-        # NB: Convention it's desired to start class_ids from 0,
-        # 0 is for background it's not included
 
-        if isinstance(self.boxes, WeightedLoss) or isinstance(
-            self.classes, WeightedLoss
-        ):
-            raise RuntimeError("You should not call this on losses")
+def to_numpy(
+    x: DetectionTargets[torch.Tensor],
+    file_name: str = "",
+) -> DetectionTargets[np.ndarray]:
+    # NB: Convention it's desired to start class_ids from 0,
+    # 0 is for background it's not included
 
-        # Convert boxes and classes to torch tensors if they aren't already
-        boxes = torch.as_tensor(self.boxes)
-        classes = torch.as_tensor(self.classes)
+    if isinstance(x.boxes, WeightedLoss) or isinstance(
+        x.classes, WeightedLoss
+    ):
+        raise RuntimeError("You should not call this on losses")
 
-        confidence = torch.nn.functional.softmax(classes, dim=-1)
-        score = confidence[..., 1:]
+    # Convert boxes and classes to torch tensors if they aren't already
+    boxes = torch.as_tensor(x.boxes)
+    classes = torch.as_tensor(x.classes)
 
-        probs_pred, label_pred = score.float().max(dim=-1)
+    confidence = torch.nn.functional.softmax(classes, dim=-1)
+    score = confidence[..., 1:]
 
-        return DetectionTargets(
-            classes=label_pred.cpu().detach().numpy(),
-            scores=probs_pred.cpu().detach().numpy(),
-            boxes=boxes.cpu().detach().numpy(),
-        )
+    probs_pred, label_pred = score.float().max(dim=-1)
 
-    def to_annotations(self) -> list[Annotation]:
-        predicted = self.to_numpy()
-        predictions = zip(
-            predicted.boxes.tolist(),
-            predicted.classes.tolist(),
-            predicted.scores.tolist(),  # type: ignore
-        )
-        return [
+    return DetectionTargets(
+        classes=label_pred.cpu().detach().numpy(),
+        scores=probs_pred.cpu().detach().numpy(),
+        boxes=boxes.cpu().detach().numpy(),
+    )
+
+
+def to_sample(
+    x: DetectionTargets[torch.Tensor],
+    file_name: str = "",
+) -> Sample:
+    predicted = to_numpy(x, file_name)
+    predictions = zip(
+        predicted.boxes.tolist(),
+        predicted.classes.tolist(),
+        predicted.scores.tolist(),  # type: ignore
+    )
+    return Sample(
+        file_name=file_name,
+        annotations=[
             Annotation(
                 bbox=box,
                 label=label,
                 score=score,
             )
             for box, label, score in predictions
-        ]
+        ],
+    )
 
 
 def to_targets(

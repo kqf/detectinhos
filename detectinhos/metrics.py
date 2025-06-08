@@ -13,7 +13,7 @@ def prepare_outputs(
     total = []
     for true_, pred_ in zip(
         batch.true,
-        batch.pred_to_numpy(inference),
+        inference(batch),
     ):  # type: ignore
         pred_sample = np.concatenate(
             (

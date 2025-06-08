@@ -6,8 +6,9 @@ import torch
 
 from detectinhos.batch import Batch
 from detectinhos.encode import decode
+from detectinhos.inference import infer_on_batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets
+from detectinhos.vanilla import DetectionTargets, to_numpy
 
 
 @pytest.fixture
@@ -36,11 +37,18 @@ def batch(
 def inference(pred, sample_anchors):
     n_good_predictions = pred.shape[0]
 
-    def inference(pred: DetectionTargets) -> torch.Tensor:
+    def pred_to_labels(pred: DetectionTargets) -> torch.Tensor:
         pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
         return torch.arange(n_good_predictions)
 
-    return inference
+    def infer(pred: Batch) -> torch.Tensor:
+        return infer_on_batch(
+            batch=pred,
+            select_valid_indices=pred_to_labels,
+            to_sample=to_numpy,  # type: ignore
+        )
+
+    return infer
 
 
 def test_mean_average_precision_add(

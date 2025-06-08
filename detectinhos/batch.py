@@ -1,11 +1,8 @@
 from dataclasses import dataclass, fields
 from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 
-import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
-
-from detectinhos.sample import Annotation, Sample
 
 T = TypeVar("T")
 
@@ -15,12 +12,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
     def __getitem__(self, idx) -> "HasBoxesAndClasses":
-        ...
-
-    def to_annotations(self) -> list[Annotation]:
-        ...
-
-    def to_numpy(self) -> "HasBoxesAndClasses[np.ndarray]":
         ...
 
 
@@ -37,38 +28,10 @@ class BatchElement(Generic[T]):
 class Batch:
     files: list[str]
     image: torch.Tensor
+    # Can be optional when we are doing inference
     true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
+    # Is optional before forward pass
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
-
-    def pred_to_samples(self, select_valid_indices: Callable) -> list[Sample]:
-        if self.pred is None:
-            return []
-
-        output = []
-        for batch_id, file in enumerate(self.files):
-            pred = self.pred[batch_id]
-            valid = select_valid_indices(pred)
-            output.append(
-                Sample(
-                    file_name=file,
-                    annotations=pred[valid].to_annotations(),
-                )
-            )
-        return output
-
-    def pred_to_numpy(
-        self,
-        select_valid_indices: Callable,
-    ) -> list[HasBoxesAndClasses[np.ndarray]]:
-        if self.pred is None:
-            return []
-
-        output = []
-        for batch_id, _ in enumerate(self.files):
-            pred = self.pred[batch_id]
-            valid = select_valid_indices(pred)
-            output.append(pred[valid].to_numpy())
-        return output
 
 
 def detection_collate(

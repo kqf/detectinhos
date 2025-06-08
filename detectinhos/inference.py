@@ -5,8 +5,9 @@ import numpy as np
 import torch
 from torchvision.ops import nms
 
+from detectinhos.batch import Batch
 from detectinhos.encode import decode
-from detectinhos.sample import Annotation
+from detectinhos.sample import Annotation, Sample
 
 T = TypeVar("T")
 
@@ -44,17 +45,40 @@ def pred_to_labels(
     return valid_index[keep]
 
 
+OT = TypeVar("OT")
+
+
+def infer_on_batch(
+    batch: Batch,
+    select_valid_indices: Callable,
+    to_sample: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
+) -> list[OT]:
+    if batch.pred is None:
+        return []
+
+    output = []
+    for batch_id, file in enumerate(batch.files):
+        pred = batch.pred[batch_id]
+        valid = select_valid_indices(pred)
+        output.append(to_sample(pred[valid], file))
+
+    return output
+
+
 def infer(
     image: np.ndarray,
     to_batch: Callable,
     model,
+    to_sample: Callable[[HasBoxesAndClasses, str], Sample],
 ) -> list[Annotation]:
     batch = to_batch(image)
     batch.pred = model(batch.image.unsqueeze(0))
-    samples = batch.pred_to_samples(
+    samples = infer_on_batch(
+        batch,
         partial(
             pred_to_labels,
             anchors=model.priors,
         ),
+        to_sample=to_sample,
     )
     return samples[0].annotations

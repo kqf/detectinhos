@@ -6,7 +6,7 @@ import torch
 
 from detectinhos.batch import Batch
 from detectinhos.inference import infer, pred_to_labels
-from detectinhos.vanilla import DetectionTargets
+from detectinhos.vanilla import DetectionTargets, to_sample
 
 
 @pytest.fixture
@@ -55,7 +55,12 @@ def test_infer(image, model):
             image=torch.from_numpy(image).permute(2, 0, 1).float(),
         )
 
-    annotations = infer(image, to_batch, model)
+    annotations = infer(
+        image,
+        to_batch,
+        model,
+        to_sample,
+    )
     assert len(annotations) == 2
 
 
