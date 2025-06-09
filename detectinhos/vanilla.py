@@ -47,14 +47,6 @@ def to_numpy(
     x: DetectionTargets[torch.Tensor],
     file_name: str = "",
 ) -> DetectionTargets[np.ndarray]:
-    # NB: Convention it's desired to start class_ids from 0,
-    # 0 is for background it's not included
-
-    if isinstance(x.boxes, WeightedLoss) or isinstance(
-        x.classes, WeightedLoss
-    ):
-        raise RuntimeError("You should not call this on losses")
-
     # Convert boxes and classes to torch tensors if they aren't already
     boxes = torch.as_tensor(x.boxes)
     classes = torch.as_tensor(x.classes)
