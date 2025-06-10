@@ -38,6 +38,7 @@ dependencies = [
     "dataclasses-json",
     "torchvision",
     "mean-average-precision",
+    "toolz",
 ]
 readme = "README.rst"
 

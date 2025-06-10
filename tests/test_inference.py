@@ -3,10 +3,11 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 import torch
+from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
 from detectinhos.inference import infer, pred_to_labels
-from detectinhos.vanilla import DetectionTargets, to_sample
+from detectinhos.vanilla import DetectionTargets, to_numpy, to_sample
 
 
 @pytest.fixture
@@ -59,7 +60,7 @@ def test_infer(image, model):
         image,
         to_batch,
         model,
-        to_sample,
+        compose(to_sample, to_numpy),
     )
     assert len(annotations) == 2
 
