@@ -40,6 +40,7 @@ class DetectionTargets(Generic[T]):
         return DetectionTargets(
             boxes=self.boxes[idx],
             classes=self.classes[idx],
+            scores=self.scores[idx] if self.scores is not None else None,
         )
 
 
