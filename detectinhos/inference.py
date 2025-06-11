@@ -6,7 +6,7 @@ import torch
 from torchvision.ops import nms
 
 from detectinhos.batch import Batch
-from detectinhos.encode import decode
+from detectinhos.encode import decode as decode_boxes
 from detectinhos.sample import Annotation, Sample
 
 T = TypeVar("T")
@@ -17,7 +17,7 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
 
-def pred_to_labels(
+def decode(
     y_pred: HasBoxesAndClasses[torch.Tensor],
     anchors: torch.Tensor,
     variances: tuple[float, float] = (0.1, 0.2),
@@ -25,7 +25,7 @@ def pred_to_labels(
     confidence_threshold: float = 0.5,
 ) -> torch.Tensor:
     confidence = torch.nn.functional.softmax(y_pred.classes, dim=-1)
-    boxes_pred = decode(
+    boxes_pred = decode_boxes(
         y_pred.boxes,
         anchors,
         variances,
@@ -76,7 +76,7 @@ def infer(
     samples = infer_on_batch(
         batch,
         partial(
-            pred_to_labels,
+            decode,
             anchors=model.priors,
         ),
         outputs=to_sample,
