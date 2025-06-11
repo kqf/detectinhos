@@ -3,10 +3,11 @@ from typing import Callable
 import numpy as np
 import pytest
 import torch
+from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
 from detectinhos.encode import decode
-from detectinhos.inference import infer_on_batch
+from detectinhos.inference import on_batch
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import DetectionTargets, to_numpy
 
@@ -37,15 +38,17 @@ def batch(
 def inference(pred, sample_anchors):
     n_good_predictions = pred.shape[0]
 
-    def pred_to_labels(pred: DetectionTargets) -> torch.Tensor:
+    def dummy_decode(pred: DetectionTargets) -> torch.Tensor:
         pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
         return torch.arange(n_good_predictions)
 
     def infer(pred: Batch) -> torch.Tensor:
-        return infer_on_batch(
+        return on_batch(
             batch=pred,
-            select_valid_indices=pred_to_labels,
-            outputs=to_numpy,  # type: ignore
+            pipeline=compose(
+                to_numpy,
+                dummy_decode,
+            ),
         )
 
     return infer

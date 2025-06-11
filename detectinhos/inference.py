@@ -3,11 +3,12 @@ from typing import Callable, Generic, Protocol, TypeVar
 
 import numpy as np
 import torch
+from toolz.functoolz import compose
 from torchvision.ops import nms
 
 from detectinhos.batch import Batch
 from detectinhos.encode import decode as decode_boxes
-from detectinhos.sample import Annotation, Sample
+from detectinhos.sample import Annotation
 
 T = TypeVar("T")
 
@@ -15,6 +16,9 @@ T = TypeVar("T")
 class HasBoxesAndClasses(Protocol, Generic[T]):
     boxes: T
     classes: T
+
+    def __getitem__(self, idx) -> "HasBoxesAndClasses":
+        ...
 
 
 def decode(
@@ -42,43 +46,40 @@ def decode(
 
     # do NMS
     keep = nms(boxes_cand, probs_cand, nms_threshold)
-    return valid_index[keep]
+    return y_pred[valid_index[keep]]
 
 
 OT = TypeVar("OT")
 
 
-def infer_on_batch(
+def on_batch(
     batch: Batch,
-    select_valid_indices: Callable,
-    outputs: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
+    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
 ) -> list[OT]:
     if batch.pred is None:
         raise ValueError("Cannot perform inference: batch.pred is empty.")
 
-    output = []
-    for batch_id, file in enumerate(batch.files):
-        pred = batch.pred[batch_id]
-        valid = select_valid_indices(pred)
-        output.append(outputs(pred[valid], file))
-
-    return output
+    return [
+        pipeline(batch.pred[i], file) for i, file in enumerate(batch.files)
+    ]
 
 
 def infer(
     image: np.ndarray,
     to_batch: Callable,
     model,
-    to_sample: Callable[[HasBoxesAndClasses, str], Sample],
+    to_sample: Callable = lambda x: x,
 ) -> list[Annotation]:
     batch = to_batch(image)
     batch.pred = model(batch.image.unsqueeze(0))
-    samples = infer_on_batch(
+    samples = on_batch(
         batch,
-        partial(
-            decode,
-            anchors=model.priors,
+        pipeline=compose(
+            to_sample,
+            partial(
+                decode,
+                anchors=model.priors,
+            ),
         ),
-        outputs=to_sample,
     )
     return samples[0].annotations
