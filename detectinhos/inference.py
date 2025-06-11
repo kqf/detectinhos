@@ -50,19 +50,14 @@ OT = TypeVar("OT")
 
 def infer_on_batch(
     batch: Batch,
-    select_valid_indices: Callable,
-    outputs: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
+    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
 ) -> list[OT]:
     if batch.pred is None:
         raise ValueError("Cannot perform inference: batch.pred is empty.")
 
-    output = []
-    for batch_id, file in enumerate(batch.files):
-        pred = batch.pred[batch_id]
-        valid = select_valid_indices(pred)
-        output.append(outputs(pred[valid], file))
-
-    return output
+    return [
+        pipeline(batch.pred[i], file) for i, file in enumerate(batch.files)
+    ]
 
 
 def infer(
@@ -79,6 +74,6 @@ def infer(
             decode,
             anchors=model.priors,
         ),
-        outputs=to_sample,
+        # outputs=to_sample,
     )
     return samples[0].annotations
