@@ -48,7 +48,7 @@ def decode(
 OT = TypeVar("OT")
 
 
-def infer_on_batch(
+def on_batch(
     batch: Batch,
     pipeline: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
 ) -> list[OT]:
@@ -68,7 +68,7 @@ def infer(
 ) -> list[Annotation]:
     batch = to_batch(image)
     batch.pred = model(batch.image.unsqueeze(0))
-    samples = infer_on_batch(
+    samples = on_batch(
         batch,
         partial(
             decode,

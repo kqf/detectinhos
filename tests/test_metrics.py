@@ -6,7 +6,7 @@ import torch
 
 from detectinhos.batch import Batch
 from detectinhos.encode import decode
-from detectinhos.inference import infer_on_batch
+from detectinhos.inference import on_batch
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import DetectionTargets, to_numpy
 
@@ -42,7 +42,7 @@ def inference(pred, sample_anchors):
         return torch.arange(n_good_predictions)
 
     def infer(pred: Batch) -> torch.Tensor:
-        return infer_on_batch(
+        return on_batch(
             batch=pred,
             select_valid_indices=pred_to_labels,
             outputs=to_numpy,  # type: ignore
