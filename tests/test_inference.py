@@ -6,7 +6,7 @@ import torch
 from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
-from detectinhos.inference import infer, pred_to_labels
+from detectinhos.inference import infer
 from detectinhos.vanilla import DetectionTargets, to_numpy, to_sample
 
 
@@ -63,13 +63,3 @@ def test_infer(image, model):
         compose(to_sample, to_numpy),
     )
     assert len(annotations) == 2
-
-
-def test_pred_to_labels(image, model):
-    y_pred = model(image)
-    # sourcery skip: no-loop-in-tests
-    indices = pred_to_labels(
-        y_pred[0],
-        model.priors,
-    )
-    assert indices.detach().cpu().numpy().tolist() == [2, 0]
