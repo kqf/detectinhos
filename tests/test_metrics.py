@@ -38,9 +38,9 @@ def batch(
 def inference(pred, sample_anchors):
     n_good_predictions = pred.shape[0]
 
-    def dummy_decode(pred: DetectionTargets) -> torch.Tensor:
+    def dummy_decode(pred: DetectionTargets, dummy_str: str) -> torch.Tensor:
         pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
-        return torch.arange(n_good_predictions)
+        return pred[torch.arange(n_good_predictions)]
 
     def infer(pred: Batch) -> torch.Tensor:
         return on_batch(
