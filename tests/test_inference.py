@@ -60,6 +60,9 @@ def test_infer(image, model):
         image,
         to_batch,
         model,
-        compose(to_sample, to_numpy),
+        compose(
+            to_sample,
+            to_numpy,
+        ),
     )
     assert len(annotations) == 2
