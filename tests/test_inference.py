@@ -6,7 +6,7 @@ import torch
 from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
-from detectinhos.inference import infer
+from detectinhos.inference import on_image
 from detectinhos.vanilla import DetectionTargets, to_numpy, to_sample
 
 
@@ -56,7 +56,7 @@ def test_infer(image, model):
             image=torch.from_numpy(image).permute(2, 0, 1).float(),
         )
 
-    annotations = infer(
+    annotations = on_image(
         image,
         to_batch,
         model,

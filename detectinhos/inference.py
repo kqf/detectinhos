@@ -65,7 +65,7 @@ def on_batch(
     ]
 
 
-def infer(
+def on_image(
     image: np.ndarray,
     to_batch: Callable,
     model,
