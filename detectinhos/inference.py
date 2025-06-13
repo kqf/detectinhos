@@ -84,4 +84,5 @@ def on_image(
             ),
         ),
     )
-    return samples[0].annotations
+    # Return the type of the last element in pipeline
+    return samples[0]

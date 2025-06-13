@@ -59,7 +59,7 @@ def test_infer(image, model):
             .unsqueeze(0),
         )
 
-    annotations = on_image(
+    sample = on_image(
         image,
         to_batch,
         model,
@@ -68,4 +68,4 @@ def test_infer(image, model):
             to_numpy,
         ),
     )
-    assert len(annotations) == 2
+    assert len(sample.annotations) == 2
