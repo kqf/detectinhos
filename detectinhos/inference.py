@@ -6,7 +6,7 @@ import torch
 from toolz.functoolz import compose
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch
+from detectinhos.batch import Batch, apply_eval
 from detectinhos.encode import decode as decode_boxes
 from detectinhos.sample import Annotation
 
@@ -71,10 +71,8 @@ def on_image(
     model,
     to_sample: Callable = lambda x: x,
 ) -> list[Annotation]:
-    batch = to_batch(image)
-    batch.pred = model(batch.image.unsqueeze(0))
     samples = on_batch(
-        batch,
+        apply_eval(to_batch(image), model),
         pipeline=compose(
             to_sample,
             partial(
