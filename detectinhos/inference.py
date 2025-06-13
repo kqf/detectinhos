@@ -72,7 +72,10 @@ def on_image(
     to_sample: Callable = lambda x: x,
 ) -> list[Annotation]:
     samples = on_batch(
-        apply_eval(to_batch(image), model),
+        apply_eval(
+            to_batch(image),
+            model,
+        ),
         pipeline=compose(
             to_sample,
             partial(
