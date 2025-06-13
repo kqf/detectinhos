@@ -34,6 +34,14 @@ class Batch:
     pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
 
 
+def apply_eval(batch: Batch, model: torch.nn.Module) -> Batch:
+    original_mode = model.training
+    model.eval()
+    predicted = Batch(batch.files, batch.image, batch.true, model(batch.image))
+    model.train(original_mode)
+    return predicted
+
+
 def detection_collate(
     batch: List[BatchElement],
     to_targets: Callable[..., HasBoxesAndClasses],
