@@ -53,7 +53,10 @@ def test_infer(image, model):
     def to_batch(image) -> Batch:
         return Batch(
             files=["fake.png"],
-            image=torch.from_numpy(image).permute(2, 0, 1).float(),
+            image=torch.from_numpy(image)
+            .permute(2, 0, 1)
+            .float()
+            .unsqueeze(0),
         )
 
     annotations = on_image(
