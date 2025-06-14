@@ -1,3 +1,4 @@
+from functools import partial
 from unittest.mock import Mock
 
 import numpy as np
@@ -5,8 +6,8 @@ import pytest
 import torch
 from toolz.functoolz import compose
 
-from detectinhos.batch import Batch
-from detectinhos.inference import on_image
+from detectinhos.batch import Batch, apply_eval
+from detectinhos.inference import decode, on_batch
 from detectinhos.vanilla import DetectionTargets, to_numpy, to_sample
 
 
@@ -59,13 +60,18 @@ def test_infer(image, model):
             .unsqueeze(0),
         )
 
-    sample = on_image(
-        image,
-        to_batch,
-        model,
-        compose(
-            to_sample,
-            to_numpy,
+    # On RGB
+    sample = compose(
+        partial(
+            on_batch,
+            pipeline=compose(
+                to_sample,
+                to_numpy,
+                partial(decode, anchors=model.priors),
+            ),
         ),
-    )
+        partial(apply_eval, model=model),
+        to_batch,
+    )(image)[0]
+
     assert len(sample.annotations) == 2
