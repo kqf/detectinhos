@@ -19,7 +19,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
 
 def decode(
     y_pred: HasBoxesAndClasses[torch.Tensor],
-    filename: str,
     anchors: torch.Tensor,
     variances: tuple[float, float] = (0.1, 0.2),
     nms_threshold: float = 0.4,
@@ -51,11 +50,9 @@ OT = TypeVar("OT")
 
 def on_batch(
     batch: Batch,
-    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor], str], OT],
+    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor]], OT],
 ) -> list[OT]:
     if batch.pred is None:
         raise ValueError("Cannot perform inference: batch.pred is empty.")
 
-    return [
-        pipeline(batch.pred[i], file) for i, file in enumerate(batch.files)
-    ]
+    return [pipeline(batch.pred[i]) for i, _ in enumerate(batch.files)]
