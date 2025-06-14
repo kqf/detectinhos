@@ -19,7 +19,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
 
 def decode(
     y_pred: HasBoxesAndClasses[torch.Tensor],
-    filename: str,
     anchors: torch.Tensor,
     variances: tuple[float, float] = (0.1, 0.2),
     nms_threshold: float = 0.4,
