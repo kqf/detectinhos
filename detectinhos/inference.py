@@ -1,14 +1,10 @@
-from functools import partial
 from typing import Callable, Generic, Protocol, TypeVar
 
-import numpy as np
 import torch
-from toolz.functoolz import compose
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch, apply_eval
+from detectinhos.batch import Batch
 from detectinhos.encode import decode as decode_boxes
-from detectinhos.sample import Annotation
 
 T = TypeVar("T")
 
@@ -63,26 +59,3 @@ def on_batch(
     return [
         pipeline(batch.pred[i], file) for i, file in enumerate(batch.files)
     ]
-
-
-def on_image(
-    image: np.ndarray,
-    to_batch: Callable,
-    model,
-    to_sample: Callable = lambda x: x,
-) -> list[Annotation]:
-    samples = on_batch(
-        apply_eval(
-            to_batch(image),
-            model,
-        ),
-        pipeline=compose(
-            to_sample,
-            partial(
-                decode,
-                anchors=model.priors,
-            ),
-        ),
-    )
-    # Return the type of the last element in pipeline
-    return samples[0]
