@@ -50,7 +50,7 @@ def model():
     return mock_model
 
 
-def test_infer(image, model):
+def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
     def to_batch(image, file="fake.png") -> Batch:
         return Batch(
             files=[file],
@@ -74,4 +74,10 @@ def test_infer(image, model):
         to_batch,
     )(image)[0]
 
+    sample.file_name = file
+    return sample
+
+
+def test_infer(image, model):
+    sample = infer_on_rgb(image, model)
     assert len(sample.annotations) == 2
