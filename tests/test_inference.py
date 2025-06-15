@@ -51,9 +51,9 @@ def model():
 
 
 def test_infer(image, model):
-    def to_batch(image) -> Batch:
+    def to_batch(image, file="fake.png") -> Batch:
         return Batch(
-            files=["fake.png"],
+            files=[file],
             image=torch.from_numpy(image)
             .permute(2, 0, 1)
             .float()
