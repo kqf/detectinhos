@@ -1,4 +1,3 @@
-from functools import partial
 from unittest.mock import Mock
 
 import numpy as np
@@ -6,7 +5,6 @@ import pytest
 import torch
 
 from detectinhos.vanilla import DetectionTargets, infer_on_rgb
-
 
 
 @pytest.fixture
