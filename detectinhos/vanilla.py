@@ -1,12 +1,15 @@
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import Callable, Generic, Optional, TypeVar
 
 import cv2
 import numpy as np
 import torch
+from toolz.functoolz import compose
 
-from detectinhos.batch import BatchElement
+from detectinhos.batch import Batch, BatchElement, apply_eval
+from detectinhos.inference import decode, on_batch
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
@@ -139,3 +142,31 @@ class DetectionDataset(torch.utils.data.Dataset):
             image=image_t,
             true=targets_t,
         )
+
+
+def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
+    def to_batch(image, file="fake.png") -> Batch:
+        return Batch(
+            files=[file],
+            image=torch.from_numpy(image)
+            .permute(2, 0, 1)
+            .float()
+            .unsqueeze(0),
+        )
+
+    # On RGB
+    sample = compose(
+        partial(
+            on_batch,
+            pipeline=compose(
+                to_sample,
+                to_numpy,
+                partial(decode, anchors=model.priors),
+            ),
+        ),
+        partial(apply_eval, model=model),
+        to_batch,
+    )(image)[0]
+
+    sample.file_name = file
+    return sample
