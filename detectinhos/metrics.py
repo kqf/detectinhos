@@ -8,10 +8,7 @@ from detectinhos.batch import Batch
 
 def to_table(batch: Batch) -> list[tuple[np.ndarray, np.ndarray]]:
     total = []
-    for true_, pred_ in zip(
-        batch.true,
-        batch.pred,
-    ):  # type: ignore
+    for true_, pred_ in zip(batch.true, batch.pred):  # type: ignore
         pred_sample = np.concatenate(
             (
                 pred_.boxes,
