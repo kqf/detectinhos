@@ -6,14 +6,11 @@ from mean_average_precision import MetricBuilder
 from detectinhos.batch import Batch
 
 
-def prepare_outputs(
-    batch: Batch,
-    inference: Callable,
-) -> list[tuple[np.ndarray, np.ndarray]]:
+def to_table(batch: Batch) -> list[tuple[np.ndarray, np.ndarray]]:
     total = []
     for true_, pred_ in zip(
         batch.true,
-        inference(batch),
+        batch.pred,
     ):  # type: ignore
         pred_sample = np.concatenate(
             (
@@ -48,10 +45,7 @@ class MeanAveragePrecision:
         self.inference = inference
 
     def add(self, batch: Batch) -> None:
-        outputs = prepare_outputs(
-            batch=batch,
-            inference=self.inference,
-        )
+        outputs = to_table(batch=batch)
         for perimage in outputs:
             self.metric_fn.add(*perimage)
 
