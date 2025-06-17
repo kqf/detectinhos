@@ -42,14 +42,15 @@ def inference(pred, sample_anchors):
         pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
         return pred[torch.arange(n_good_predictions)]
 
-    def infer(pred: Batch) -> torch.Tensor:
-        return on_batch(
-            batch=pred,
+    def infer(batch: Batch) -> torch.Tensor:
+        batch.pred = on_batch(
+            batch=batch,
             pipeline=compose(
                 to_numpy,
                 dummy_decode,
             ),
-        )
+        )  # type: ignore
+        return batch
 
     return infer
 
