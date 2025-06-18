@@ -25,13 +25,13 @@ class BatchElement(Generic[T]):
 
 # Stacked BatchElements along batch dimension
 @dataclass
-class Batch:
+class Batch(Generic[T]):
     files: list[str]
-    image: torch.Tensor
+    image: T
     # Can be optional when we are doing inference
-    true: Optional[HasBoxesAndClasses[torch.Tensor]] = None
+    true: Optional[HasBoxesAndClasses[T]] = None
     # Is optional before forward pass
-    pred: Optional[HasBoxesAndClasses[torch.Tensor]] = None
+    pred: Optional[HasBoxesAndClasses[T]] = None
 
 
 def apply_eval(batch: Batch, model: torch.nn.Module) -> Batch:
