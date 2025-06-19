@@ -1,12 +1,23 @@
-from typing import Callable
+from typing import Callable, Generic, Protocol, TypeVar
 
 import numpy as np
 from mean_average_precision import MetricBuilder
 
-from detectinhos.batch import Batch
+T = TypeVar("T")
 
 
-def to_table(batch: Batch[np.ndarray]) -> list[tuple[np.ndarray, np.ndarray]]:
+class HasBoxesAndClasses(Protocol, Generic[T]):
+    boxes: T
+    classes: T
+    scores: T
+
+
+class Batch(Protocol):
+    true: list[HasBoxesAndClasses[np.ndarray]]
+    pred: list[HasBoxesAndClasses[np.ndarray]]
+
+
+def to_table(batch: Batch) -> list[tuple[np.ndarray, np.ndarray]]:
     total = []
     for true_, pred_ in zip(batch.true, batch.pred):  # type: ignore
         pred_sample = np.concatenate(
