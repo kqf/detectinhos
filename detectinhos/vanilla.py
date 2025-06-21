@@ -170,3 +170,14 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
 
     sample.file_name = file
     return sample
+
+
+def infer(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
+    batch.pred = on_batch(
+        batch=batch,
+        pipeline=compose(
+            to_numpy,
+            partial(decode, anchors=priors, variances=[0.1, 0.2]),
+        ),
+    )  # type: ignore
+    return batch
