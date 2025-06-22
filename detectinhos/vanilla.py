@@ -177,7 +177,13 @@ def infer(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
         batch=batch,
         pipeline=compose(
             to_numpy,
-            partial(decode, anchors=priors, variances=[0.1, 0.2]),
+            partial(
+                decode,
+                anchors=priors,
+                variances=[0.1, 0.2],
+                confidence_threshold=0.01,
+                nms_threshold=2.0,
+            ),
         ),
     )  # type: ignore
     return batch
