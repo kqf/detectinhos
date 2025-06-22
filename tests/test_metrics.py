@@ -10,6 +10,7 @@ from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import DetectionTargets, infer
 
 
+
 @pytest.fixture
 def batch(
     image: np.ndarray,
