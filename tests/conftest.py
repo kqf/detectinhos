@@ -112,7 +112,12 @@ def classes_pred(pred, sample_anchors) -> torch.Tensor:
     total[:, 0] = 1.0
     # Except for the predictions
     total[: pred.shape[0]] = torch.Tensor(pred[:, 4:6])
-    return total.unsqueeze(0)
+    total[: pred.shape[0], 0] = 1 - total[: pred.shape[0], 1]
+    # Convert probabilities to logits
+    eps = 1e-7
+    total = torch.clamp(total, eps, 1.0)  # ensure log safety
+    logits = torch.log(total)
+    return logits.unsqueeze(0)
 
 
 @pytest.fixture
