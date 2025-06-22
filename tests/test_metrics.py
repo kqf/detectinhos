@@ -4,13 +4,11 @@ from typing import Callable
 import numpy as np
 import pytest
 import torch
-from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
-from detectinhos.encode import decode
-from detectinhos.inference import on_batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets, infer, to_numpy
+from detectinhos.vanilla import DetectionTargets, infer
+
 
 
 @pytest.fixture
