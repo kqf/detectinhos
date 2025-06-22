@@ -1,4 +1,4 @@
-from typing import Callable, Generic, Protocol, TypeVar
+from typing import Generic, Protocol, TypeVar
 
 import numpy as np
 from mean_average_precision import MetricBuilder
@@ -41,7 +41,6 @@ class MeanAveragePrecision:
     def __init__(
         self,
         num_classes: int,
-        inference: Callable,
     ):
         # NB: Convention, while calculating mAP, always start with 0
         # We don't calculate the metrics for background class
@@ -50,7 +49,6 @@ class MeanAveragePrecision:
             async_mode=False,
             num_classes=num_classes - 1,
         )
-        self.inference = inference
 
     def add(self, batch: Batch) -> None:
         outputs = to_table(batch=batch)
