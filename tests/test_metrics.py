@@ -1,13 +1,16 @@
+# from functools import partial
 from typing import Callable
 
 import numpy as np
 import pytest
 import torch
+from toolz.functoolz import compose
 
 from detectinhos.batch import Batch
+from detectinhos.encode import decode
+from detectinhos.inference import on_batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets, infer
-
+from detectinhos.vanilla import DetectionTargets, to_numpy
 
 
 @pytest.fixture
@@ -34,7 +37,11 @@ def batch(
 
 @pytest.fixture
 def inference(pred, sample_anchors):
-    # n_good_predictions = pred.shape[0]
+    n_good_predictions = pred.shape[0]
+
+    def dummy_decode(pred: DetectionTargets) -> torch.Tensor:
+        pred.boxes = decode(pred.boxes, sample_anchors, variances=[0.1, 0.2])
+        return pred[torch.arange(n_good_predictions)]
 
     def _infer(batch: Batch) -> torch.Tensor:
         batch.pred = on_batch(
@@ -48,12 +55,11 @@ def inference(pred, sample_anchors):
 
     return _infer
 
-
     # from detectinhos.vanilla import infer
     # from functools import partial
     # return partial(infer, priors=sample_anchors)
 
-    
+
 # @pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
