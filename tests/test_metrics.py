@@ -53,13 +53,15 @@ def inference(pred, sample_anchors):
         )  # type: ignore
         return batch
 
-    return _infer
+    # return _infer
 
-    # from detectinhos.vanilla import infer
-    # from functools import partial
-    # return partial(infer, priors=sample_anchors)
+    from functools import partial
 
+    from detectinhos.vanilla import infer
 
+    return partial(infer, priors=sample_anchors)
+
+  
 # @pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
