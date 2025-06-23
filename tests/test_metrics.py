@@ -61,7 +61,7 @@ def inference(pred, sample_anchors):
 
     return partial(infer, priors=sample_anchors)
 
-
+  
 # @pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
