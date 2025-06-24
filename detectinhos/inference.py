@@ -25,7 +25,8 @@ def decode(
     confidence_threshold: float = 0.5,
 ) -> torch.Tensor:
     confidence = torch.nn.functional.softmax(y_pred.classes, dim=-1)
-    boxes_pred = decode_boxes(
+    # TODO: Fix the mutations of boxes
+    y_pred.boxes = decode_boxes(
         y_pred.boxes,
         anchors,
         variances,
@@ -37,7 +38,7 @@ def decode(
     valid_index = torch.where((score > confidence_threshold).any(-1))[0]
 
     # NMS doesn't accept fp16 inputs
-    boxes_cand = boxes_pred[valid_index].float()
+    boxes_cand = y_pred.boxes[valid_index].float()
     probs_cand, _ = score[valid_index].float().max(dim=-1)
 
     # do NMS
