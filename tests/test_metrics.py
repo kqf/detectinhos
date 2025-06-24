@@ -1,4 +1,5 @@
 # from functools import partial
+from functools import partial
 from typing import Callable
 
 import numpy as np
@@ -7,7 +8,7 @@ import torch
 
 from detectinhos.batch import Batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets
+from detectinhos.vanilla import DetectionTargets, infer
 
 
 @pytest.fixture
