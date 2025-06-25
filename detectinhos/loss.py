@@ -8,17 +8,6 @@ from torch import nn
 from detectinhos.matching import match
 from detectinhos.sublosses import WeightedLoss
 
-T = TypeVar("T")
-
-
-class HasBoxesAndClasses(Protocol, Generic[T]):
-    boxes: T
-    classes: T
-
-    @classmethod
-    def is_dataclass(cls) -> bool:
-        ...
-
 
 def select(
     y_pred,
@@ -47,6 +36,18 @@ def select(
     true_all = torch.cat([true_pos.view(-1), true_neg], dim=0).long()
     anch_all = torch.cat([anch_pos, anch_neg], dim=0)
     return pred_all, true_all, anch_all
+
+
+T = TypeVar("T")
+
+
+class HasBoxesAndClasses(Protocol, Generic[T]):
+    boxes: T
+    classes: T
+
+    @classmethod
+    def is_dataclass(cls) -> bool:
+        ...
 
 
 MATCHING_TYPE = Callable[
