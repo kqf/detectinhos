@@ -1,4 +1,4 @@
-from dataclasses import fields
+from dataclasses import fields, is_dataclass
 from functools import partial
 from typing import Callable, Generic, Protocol, Tuple, TypeVar
 
@@ -27,18 +27,20 @@ def select(
 
     b_neg, a_neg = torch.where(negatives)
     pred_neg = y_pred[b_neg, a_neg]
-    # NB: Convention the negatives are always 1D, and 0 is negative class
     true_neg = torch.zeros_like(pred_neg[:, 0], dtype=torch.long)
     anch_neg = anchors[a_neg]
 
     pred_all = torch.cat([pred_pos, pred_neg], dim=0)
-    # NB: Convention the negatives are always 1D
     true_all = torch.cat([true_pos.view(-1), true_neg], dim=0).long()
     anch_all = torch.cat([anch_pos, anch_neg], dim=0)
     return pred_all, true_all, anch_all
 
 
 T = TypeVar("T")
+LossContainer = TypeVar(
+    "LossContainer",
+    bound="HasBoxesAndClasses[WeightedLoss]",
+)
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
@@ -60,12 +62,11 @@ MATCHING_TYPE = Callable[
 ]
 
 
-# TODO: Make it generic wrt WeightedLoss
-class DetectionLoss(nn.Module):
+class DetectionLoss(Generic[LossContainer], nn.Module):
     def __init__(
         self,
         priors: torch.Tensor,
-        sublosses: HasBoxesAndClasses[WeightedLoss],
+        sublosses: LossContainer,
         match: MATCHING_TYPE = partial(
             match,
             negpos_ratio=7,
@@ -73,6 +74,8 @@ class DetectionLoss(nn.Module):
         ),
     ) -> None:
         super().__init__()
+        if not is_dataclass(sublosses):
+            raise TypeError("sublosses must be a dataclass instance")
         self.sublosses = sublosses
         self.match = match
         self.register_buffer("priors", priors)
