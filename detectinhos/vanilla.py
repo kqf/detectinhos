@@ -74,7 +74,7 @@ def to_sample(
     predictions = zip(
         predicted.boxes.tolist(),
         predicted.classes.tolist(),
-        predicted.scores.tolist(),  # type: ignore
+        predicted.scores.tolist() if predicted.scores is not None else [],
     )
     return Sample(
         file_name=file_name,
