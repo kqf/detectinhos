@@ -10,13 +10,13 @@ from detectinhos.sublosses import WeightedLoss
 
 
 def select(
-    y_pred,
-    y_true,
-    anchors,
-    use_negatives,
-    positives,
-    negatives,
-):
+    y_pred: torch.Tensor,
+    y_true: torch.Tensor,
+    anchors: torch.Tensor,
+    use_negatives: bool,
+    positives: torch.Tensor,
+    negatives: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     b_pos, a_pos, o_pos = torch.where(positives)
     pred_pos = y_pred[b_pos, a_pos]
     true_pos = y_true[b_pos, o_pos]
