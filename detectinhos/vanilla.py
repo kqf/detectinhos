@@ -172,7 +172,7 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
     return sample
 
 
-def infer(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
+def infer_on_batch(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
     batch.pred = on_batch(
         batch=batch,
         pipeline=compose(

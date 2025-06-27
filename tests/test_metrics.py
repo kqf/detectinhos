@@ -8,7 +8,7 @@ import torch
 
 from detectinhos.batch import Batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets, infer
+from detectinhos.vanilla import DetectionTargets, infer_on_batch
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def batch(
 
 @pytest.fixture
 def inference(pred, sample_anchors):
-    return partial(infer, priors=sample_anchors)
+    return partial(infer_on_batch, priors=sample_anchors)
 
 
 # @pytest.mark.xfail
