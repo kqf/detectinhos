@@ -74,7 +74,7 @@ def to_sample(
     predictions = zip(
         predicted.boxes.tolist(),
         predicted.classes.tolist(),
-        predicted.scores.tolist(),  # type: ignore
+        predicted.scores.tolist() if predicted.scores is not None else [],
     )
     return Sample(
         file_name=file_name,
@@ -170,3 +170,20 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
 
     sample.file_name = file
     return sample
+
+
+def infer(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
+    batch.pred = on_batch(
+        batch=batch,
+        pipeline=compose(
+            to_numpy,
+            partial(
+                decode,
+                anchors=priors,
+                variances=[0.1, 0.2],
+                confidence_threshold=0.01,
+                nms_threshold=2.0,
+            ),
+        ),
+    )  # type: ignore
+    return batch
