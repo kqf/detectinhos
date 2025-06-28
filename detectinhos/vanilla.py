@@ -9,8 +9,8 @@ import torch
 from toolz.functoolz import compose
 
 from detectinhos.batch import Batch, BatchElement, apply_eval
+from detectinhos.data import Annotation, Sample
 from detectinhos.inference import decode, on_batch
-from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
 
