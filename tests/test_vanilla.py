@@ -6,7 +6,7 @@ from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.encode import encode
 from detectinhos.loss import DetectionLoss
-from detectinhos.sample import read_dataset
+from detectinhos.data import read_dataset
 from detectinhos.sublosses import (
     WeightedLoss,
     masked_loss,
