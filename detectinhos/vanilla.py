@@ -1,24 +1,15 @@
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
 from typing import Callable, Generic, Optional, TypeVar
 
-import cv2
 import numpy as np
 import torch
 from toolz.functoolz import compose
 
 from detectinhos.batch import Batch, BatchElement, apply_eval
-from detectinhos.data import Annotation, Sample
+from detectinhos.data import Annotation, Sample, load_rgb
 from detectinhos.inference import decode, on_batch
 from detectinhos.sublosses import WeightedLoss
-
-
-def load_rgb(image_path: Path | str) -> np.array:
-    image = cv2.imread(str(image_path))
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    return image
-
 
 T = TypeVar(
     "T",

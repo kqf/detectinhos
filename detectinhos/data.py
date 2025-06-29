@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+import numpy as np
 from dacite import Config, from_dict
 from dataclasses_json import dataclass_json
 
@@ -52,3 +53,9 @@ def read_dataset(
         df = json.load(f)
     samples = [clean(to_sample(x)) for x in df]
     return [s for s in samples if s.annotations]
+
+
+def load_rgb(image_path: Path | str) -> np.array:
+    image = cv2.imread(str(image_path))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
