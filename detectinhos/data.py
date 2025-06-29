@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+import cv2
 import numpy as np
 from dacite import Config, from_dict
 from dataclasses_json import dataclass_json
