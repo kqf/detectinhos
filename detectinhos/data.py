@@ -10,8 +10,6 @@ from dataclasses_json import dataclass_json
 
 RelativeXYXY = tuple[float, float, float, float]
 
-T = TypeVar("T")
-
 
 @dataclass_json
 @dataclass
@@ -19,6 +17,9 @@ class Annotation:
     bbox: RelativeXYXY
     label: str
     score: float = float("nan")
+
+
+T = TypeVar("T", bound=Annotation)
 
 
 @dataclass
