@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Generic, TypeVar
 
 import cv2
 import numpy as np
@@ -9,6 +9,8 @@ from dacite import Config, from_dict
 from dataclasses_json import dataclass_json
 
 RelativeXYXY = tuple[float, float, float, float]
+
+T = TypeVar("T")
 
 
 @dataclass_json
@@ -19,23 +21,23 @@ class Annotation:
     score: float = float("nan")
 
 
-@dataclass_json
 @dataclass
-class Sample:
+class Sample(Generic[T]):
     file_name: str
-    annotations: list[Annotation]
+    annotations: list[T]
 
 
-def to_sample(entry: dict[str, Any]) -> Sample:
+def to_sample(
+    entry: dict[str, Any], sample_type: type[Sample[T]]
+) -> Sample[T]:
     return from_dict(
-        data_class=Sample,
+        data_class=sample_type,
         data=entry,
         config=Config(cast=[tuple]),
     )
 
 
-def remove_invalid_boxes(sample: Sample) -> Sample:
-    # Keep only annotations with valid bounding boxes
+def remove_invalid_boxes(sample: Sample[Annotation]) -> Sample[Annotation]:
     cleaned = [
         annotation
         for annotation in sample.annotations
@@ -48,15 +50,16 @@ def remove_invalid_boxes(sample: Sample) -> Sample:
 
 def read_dataset(
     path: Path | str,
-    clean: Callable = remove_invalid_boxes,
-) -> list[Sample]:
+    sample_type: type[Sample[T]] = Sample[Annotation],
+    clean: Callable[[Sample[T]], Sample[T]] = lambda x: x,
+) -> list[Sample[T]]:
     with open(path) as f:
         df = json.load(f)
-    samples = [clean(to_sample(x)) for x in df]
+    samples = [clean(to_sample(x, sample_type)) for x in df]
     return [s for s in samples if s.annotations]
 
 
-def load_rgb(image_path: Path | str) -> np.array:
+def load_rgb(image_path: Path | str) -> np.ndarray:
     image = cv2.imread(str(image_path))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
