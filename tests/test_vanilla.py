@@ -4,7 +4,7 @@ import torch
 
 from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
-from detectinhos.data import read_dataset
+from detectinhos.data import Annotation, Sample, read_dataset
 from detectinhos.encode import encode
 from detectinhos.loss import DetectionLoss
 from detectinhos.sublosses import (
@@ -34,7 +34,7 @@ class DedetectionModel(torch.nn.Module):
 def test_vanilla(annotations, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
-            labels=read_dataset(annotations) * 8,
+            labels=read_dataset(annotations, Sample[Annotation]) * 8,
             mapping={"person": 1},
         ),
         batch_size=4,
