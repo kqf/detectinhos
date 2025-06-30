@@ -50,7 +50,7 @@ def remove_invalid_boxes(sample: Sample[Annotation]) -> Sample[Annotation]:
 
 def read_dataset(
     path: Path | str,
-    sample_type: type[Sample[T]] = Sample[Annotation],
+    sample_type: type[Sample[T]] = Sample[T],
     clean: Callable[[Sample[T]], Sample[T]] = lambda x: x,
 ) -> list[Sample[T]]:
     with open(path) as f:
