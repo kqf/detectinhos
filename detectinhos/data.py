@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import cv2
 import numpy as np
@@ -29,7 +29,8 @@ class Sample(Generic[T]):
 
 
 def to_sample(
-    entry: dict[str, Any], sample_type: type[Sample[T]]
+    entry: dict[str, Any],
+    sample_type: type[Sample[T]],
 ) -> Sample[T]:
     return from_dict(
         data_class=sample_type,
@@ -41,11 +42,10 @@ def to_sample(
 def read_dataset(
     path: Path | str,
     sample_type: type[Sample[T]] = Sample[T],
-    clean: Callable[[Sample[T]], Sample[T]] = lambda x: x,
 ) -> list[Sample[T]]:
     with open(path) as f:
         df = json.load(f)
-    samples = [clean(to_sample(x, sample_type)) for x in df]
+    samples = [to_sample(x, sample_type) for x in df]
     return [s for s in samples if s.annotations]
 
 
