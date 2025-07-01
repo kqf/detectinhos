@@ -38,17 +38,6 @@ def to_sample(
     )
 
 
-def remove_invalid_boxes(sample: Sample[Annotation]) -> Sample[Annotation]:
-    cleaned = [
-        annotation
-        for annotation in sample.annotations
-        if annotation.bbox[0] < annotation.bbox[2]
-        and annotation.bbox[1] < annotation.bbox[3]
-    ]
-    sample.annotations = cleaned
-    return sample
-
-
 def read_dataset(
     path: Path | str,
     sample_type: type[Sample[T]] = Sample[T],
