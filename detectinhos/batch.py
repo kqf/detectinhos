@@ -4,6 +4,8 @@ from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from detectinhos.inference import HasBoxesAndClasses
+
 T = TypeVar("T")
 
 
@@ -57,3 +59,13 @@ def detection_collate(
     }
     files = [sample.file for sample in batch]
     return Batch(files, images, to_targets(**targets))
+
+
+def on_batch(
+    batch: Batch,
+    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor]], OT],
+) -> list[OT]:
+    if batch.pred is None:
+        raise ValueError("Cannot perform inference: batch.pred is empty.")
+
+    return [pipeline(batch.pred[i]) for i, _ in enumerate(batch.files)]
