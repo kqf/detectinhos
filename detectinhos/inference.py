@@ -43,6 +43,3 @@ def decode(
     # do NMS
     keep = nms(boxes_cand, probs_cand, nms_threshold)
     return y_pred[valid_index[keep]]
-
-
-OT = TypeVar("OT")

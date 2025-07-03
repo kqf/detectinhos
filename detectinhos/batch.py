@@ -61,6 +61,9 @@ def detection_collate(
     return Batch(files, images, to_targets(**targets))
 
 
+OT = TypeVar("OT")
+
+
 def on_batch(
     batch: Batch,
     pipeline: Callable[[HasBoxesAndClasses[torch.Tensor]], OT],
