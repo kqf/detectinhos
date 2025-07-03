@@ -6,9 +6,9 @@ import numpy as np
 import torch
 from toolz.functoolz import compose
 
-from detectinhos.batch import Batch, BatchElement, apply_eval
+from detectinhos.batch import Batch, BatchElement, apply_eval, on_batch
 from detectinhos.data import Annotation, Sample, load_rgb
-from detectinhos.inference import decode, on_batch
+from detectinhos.inference import decode
 from detectinhos.sublosses import WeightedLoss
 
 T = TypeVar(

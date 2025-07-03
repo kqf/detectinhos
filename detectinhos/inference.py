@@ -1,9 +1,8 @@
-from typing import Callable, Generic, Protocol, TypeVar
+from typing import Generic, Protocol, TypeVar
 
 import torch
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch
 from detectinhos.encode import decode as decode_boxes
 
 T = TypeVar("T")
@@ -47,13 +46,3 @@ def decode(
 
 
 OT = TypeVar("OT")
-
-
-def on_batch(
-    batch: Batch,
-    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor]], OT],
-) -> list[OT]:
-    if batch.pred is None:
-        raise ValueError("Cannot perform inference: batch.pred is empty.")
-
-    return [pipeline(batch.pred[i]) for i, _ in enumerate(batch.files)]
