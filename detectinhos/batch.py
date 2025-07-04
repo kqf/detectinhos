@@ -4,8 +4,6 @@ from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from detectinhos.inference import HasBoxesAndClasses
-
 T = TypeVar("T")
 
 
