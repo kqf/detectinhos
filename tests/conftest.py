@@ -53,7 +53,7 @@ def annotations(tmp_path) -> pathlib.Path:
 
 @pytest.fixture
 def true():
-    # [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
+    # [xmin, ymin, xmax, ymax, class_id, difficult, crowd] ~
     return np.array(
         [
             [439, 157, 556, 241, 0, 0, 0],
@@ -68,7 +68,7 @@ def true():
 
 @pytest.fixture
 def pred():
-    # [xmin, ymin, xmax, ymax, class_id, confidence]
+    # [xmin, ymin, xmax, ymax, class_id, confidence] ~
     return np.array(
         [
             [429, 219, 528, 247, 0, 0.460851],
@@ -97,7 +97,6 @@ def classes_true(true) -> torch.Tensor:
 def boxes_pred(pred, sample_anchors) -> torch.Tensor:
     total = torch.zeros((sample_anchors.shape[0], 4), dtype=torch.float32)
     total[: pred.shape[0]] = torch.Tensor(pred[:, :4])
-    # return total.unsqueeze(0)
     return encode(
         total,
         sample_anchors,
