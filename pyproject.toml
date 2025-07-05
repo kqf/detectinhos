@@ -11,7 +11,7 @@ skip-magic-trailing-comma = false
 [tool.ruff.lint]
 extend-select = [
     # "E",   # pycodestyle
-    # "F",   # pyflakes
+    "F",   # pyflakes
     "I",   # isort
     # "UP",  # pyupgrade
     # "B",   # bugbear
