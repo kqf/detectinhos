@@ -25,7 +25,7 @@ T = TypeVar(
 class DetectionTargets(Generic[T]):
     boxes: T  # [B, N, 4]
     classes: T  # [B, N]
-    scores: T  # [B, N]
+    scores: Optional[T] = None  # [B, N]
 
 
 P = TypeVar(
@@ -37,10 +37,6 @@ P = TypeVar(
 
 @dataclass
 class DetectionPredictions(DetectionTargets[P]):
-    boxes: P  # [B, A, 4]
-    classes: P  # [B, A, C]
-    scores: P  # [B, A]
-
     def decode(
         self,
         anchors: torch.Tensor,  # [A, 4]
