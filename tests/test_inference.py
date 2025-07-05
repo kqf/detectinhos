@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from detectinhos.vanilla import DetectionTargets, infer_on_rgb
+from detectinhos.vanilla import DetectionPredictions, infer_on_rgb
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def model():
             [0.3, 0.3, 0.4, 0.4],
         ]
     )
-    mock_model.return_value = DetectionTargets(
+    mock_model.return_value = DetectionPredictions(
         boxes=torch.tensor(
             [
                 [
