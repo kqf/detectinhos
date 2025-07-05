@@ -12,8 +12,7 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     boxes: T
     classes: T
 
-    def __getitem__(self, idx) -> "HasBoxesAndClasses":
-        ...
+    def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
 
 
 def decode(
