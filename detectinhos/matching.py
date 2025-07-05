@@ -15,26 +15,26 @@ def convert_to_xyxy(boxes: torch.Tensor) -> torch.Tensor:
 
 
 def intersect(box_a: torch.Tensor, box_b: torch.Tensor) -> torch.Tensor:
-    # [batch, n_obj, n_anchors, 2]
+    # [batch, n_obj, n_anchors, 2] ~
     max_xy = torch.min(box_a[..., 2:], box_b[..., 2:])
     min_xy = torch.max(box_a[..., :2], box_b[..., :2])
 
     inter = torch.clamp(max_xy - min_xy, min=0)
-    # [batch, n_obj, n_anchors]
+    # [batch, n_obj, n_anchors] ~
     return inter[..., 0] * inter[..., 1]
 
 
 def iou(box_a: torch.Tensor, box_b: torch.Tensor) -> torch.Tensor:
-    # [batch, n_obj, n_anchors]
+    # [batch, n_obj, n_anchors] ~
     inter = intersect(box_a, box_b)
 
-    # [batch, n_obj]
+    # [batch, n_obj] ~
     area_a = (box_a[..., 2] - box_a[..., 0]) * (box_a[..., 3] - box_a[..., 1])
-    # [batch, n_anchors]
+    # [batch, n_anchors] ~
     area_b = (box_b[..., 2] - box_b[..., 0]) * (box_b[..., 3] - box_b[..., 1])
     union = area_a + area_b - inter
 
-    # [batch, n_obj, n_anchors]
+    # [batch, n_obj, n_anchors] ~
     return inter / union
 
 
@@ -42,7 +42,7 @@ def match_boxes(
     boxes: torch.Tensor,  # [n_obj, 4]
     priors: torch.Tensor,  # [n_anchors, 4]
     overlap_threshold: float,
-) -> torch.Tensor:  # returns a tensor of shape [n_anchors, n_obj]
+) -> torch.Tensor:  # returns a tensor of shape [n_anchors, n_obj] ~
     n_anchors = priors.shape[0]
     n_obj = boxes.shape[0]
 
