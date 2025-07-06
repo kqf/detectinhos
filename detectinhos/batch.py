@@ -14,6 +14,10 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
 
 
+class HasBoxesAndClassesPredicted(HasBoxesAndClasses[T]):
+    def decode(self, *args, **kwargs) -> HasBoxesAndClasses: ...
+
+
 # A single element in the batch
 @dataclass
 class BatchElement(Generic[T]):
@@ -30,7 +34,7 @@ class Batch(Generic[T]):
     # Can be optional when we are doing inference
     true: Optional[HasBoxesAndClasses[T]] = None
     # Is optional before forward pass
-    pred: Optional[HasBoxesAndClasses[T]] = None
+    pred: Optional[HasBoxesAndClassesPredicted[T]] = None
 
 
 def apply_eval(
