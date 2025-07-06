@@ -1,13 +1,16 @@
 from dataclasses import dataclass
 from functools import partial
+from operator import itemgetter, methodcaller
 from typing import Callable, Generic, Optional, TypeVar
 
 import numpy as np
 import torch
 from toolz.functoolz import compose
+from torchvision.ops import nms
 
-from detectinhos.batch import Batch, BatchElement, apply_eval, on_batch
+from detectinhos.batch import Batch, BatchElement, apply_eval
 from detectinhos.data import Annotation, Sample, load_rgb
+from detectinhos.encode import decode as decode_boxes
 from detectinhos.inference import decode
 from detectinhos.sublosses import WeightedLoss
 
@@ -21,40 +24,87 @@ T = TypeVar(
 
 @dataclass
 class DetectionTargets(Generic[T]):
-    boxes: T
-    classes: T
-    scores: Optional[T] = None
+    boxes: T  # [B, N, 4]
+    classes: T  # [B, N]
+    scores: Optional[T] = None  # [B, N]
 
-    def __getitem__(self, idx):
-        if isinstance(self.boxes, WeightedLoss) or isinstance(
-            self.classes, WeightedLoss
-        ):
-            raise RuntimeError("You should not call this on losses")
 
-        return DetectionTargets(
-            boxes=self.boxes[idx],
-            classes=self.classes[idx],
-            scores=self.scores[idx] if self.scores is not None else None,
-        )
+P = TypeVar(
+    "P",
+    np.ndarray,
+    torch.Tensor,
+)
+
+
+@dataclass
+class DetectionPredictions(DetectionTargets[P]):
+    def decode(
+        self,
+        anchors: torch.Tensor,  # [A, 4]
+        variances: tuple[float, float] = (0.1, 0.2),
+        nms_threshold: float = 0.4,
+        confidence_threshold: float = 0.5,
+    ) -> list[DetectionTargets]:
+        """
+        Decode a batch of predictions into a list of DetectionTargets.
+        Assumes:
+        - `self.boxes` is [B, A, 4] (encoded deltas)
+        - `self.classes` is [B, A, C] (class logits)
+        - `anchors` is [A, 4]
+        """
+        decoded_batch = []
+        for b in range(self.boxes.shape[0]):
+            # [A, C] ~
+            logits = self.classes[b]
+            confidence = torch.nn.functional.softmax(logits, dim=-1)
+            scores, labels = confidence[:, 1:].max(dim=-1)  # drop background
+            labels = labels + 1  # shift index to correct class
+
+            # [A, 4] ~
+            decoded = decode_boxes(self.boxes[b], anchors, variances)
+
+            mask = scores > confidence_threshold
+            filtered_boxes = decoded[mask]
+            filtered_scores = scores[mask]
+            filtered_labels = labels[mask]
+
+            if filtered_boxes.numel() == 0:
+                decoded_batch.append(
+                    DetectionTargets(
+                        boxes=torch.empty((0, 4), device=self.boxes.device),
+                        classes=torch.empty(
+                            (0,), dtype=torch.long, device=self.boxes.device
+                        ),
+                        scores=torch.empty((0,), device=self.boxes.device),
+                    )
+                )
+                continue
+
+            keep = nms(
+                filtered_boxes.float(), filtered_scores.float(), nms_threshold
+            )
+
+            decoded_batch.append(
+                DetectionTargets(
+                    boxes=filtered_boxes[keep],
+                    classes=filtered_labels[keep],
+                    scores=filtered_scores[keep],
+                )
+            )
+
+        return decoded_batch
 
 
 def to_numpy(
     x: DetectionTargets[torch.Tensor],
     file_name: str = "",
 ) -> DetectionTargets[np.ndarray]:
-    # Convert boxes and classes to torch tensors if they aren't already
-    boxes = torch.as_tensor(x.boxes)
-    classes = torch.as_tensor(x.classes)
-
-    confidence = torch.nn.functional.softmax(classes, dim=-1)
-    score = confidence[..., 1:]
-
-    probs_pred, label_pred = score.float().max(dim=-1)
-
     return DetectionTargets(
-        classes=label_pred.cpu().detach().numpy(),
-        scores=probs_pred.cpu().detach().numpy(),
-        boxes=boxes.cpu().detach().numpy(),
+        classes=x.classes.cpu().detach().numpy(),
+        scores=x.scores.cpu().detach().numpy()
+        if x.scores is not None
+        else np.empty(),
+        boxes=x.boxes.cpu().detach().numpy(),
     )
 
 
@@ -147,34 +197,31 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
 
     # On RGB
     sample = compose(
-        partial(
-            on_batch,
-            pipeline=compose(
-                to_sample,
-                to_numpy,
-                partial(decode, anchors=model.priors),
+        compose(
+            to_sample,
+            to_numpy,
+            itemgetter(0),
+            methodcaller(
+                "decode",
+                anchors=model.priors,
             ),
         ),
         partial(apply_eval, model=model),
         to_batch,
-    )(image)[0]
-
+    )(image)
     sample.file_name = file
     return sample
 
 
 def infer_on_batch(batch: Batch, priors: torch.Tensor) -> torch.Tensor:
-    batch.pred = on_batch(
-        batch=batch,
-        pipeline=compose(
-            to_numpy,
-            partial(
-                decode,
-                anchors=priors,
-                variances=[0.1, 0.2],
-                confidence_threshold=0.01,
-                nms_threshold=2.0,
-            ),
+    batch.pred = compose(
+        to_numpy,
+        partial(
+            decode,
+            anchors=priors,
+            variances=[0.1, 0.2],
+            confidence_threshold=0.01,
+            nms_threshold=2.0,
         ),
-    )  # type: ignore
-    return batch
+    )(batch.pred)
+    return

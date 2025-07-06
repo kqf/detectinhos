@@ -33,10 +33,13 @@ class Batch(Generic[T]):
     pred: Optional[HasBoxesAndClasses[T]] = None
 
 
-def apply_eval(batch: Batch, model: torch.nn.Module) -> Batch:
+def apply_eval(
+    batch: Batch[T],
+    model: torch.nn.Module,
+) -> HasBoxesAndClasses[T]:
     original_mode = model.training
     model.eval()
-    predicted = Batch(batch.files, batch.image, batch.true, model(batch.image))
+    predicted = model(batch.image)
     model.train(original_mode)
     return predicted
 

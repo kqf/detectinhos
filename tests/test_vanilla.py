@@ -12,7 +12,11 @@ from detectinhos.sublosses import (
     masked_loss,
     retina_confidence_loss,
 )
-from detectinhos.vanilla import DetectionDataset, DetectionTargets
+from detectinhos.vanilla import (
+    DetectionDataset,
+    DetectionPredictions,
+    DetectionTargets,
+)
 
 
 class DedetectionModel(torch.nn.Module):
@@ -25,9 +29,10 @@ class DedetectionModel(torch.nn.Module):
     def forward(self, images: torch.Tensor) -> DetectionTargets:
         batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
-        return DetectionTargets(
+        return DetectionPredictions(
             classes=torch.rand((batch, num_anchors, self.n_clases)),
             boxes=torch.rand((batch, num_anchors, 4)),
+            scores=torch.empty((batch, num_anchors)),
         )
 
 
