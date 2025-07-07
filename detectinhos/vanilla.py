@@ -79,7 +79,7 @@ class DetectionPredictions(DetectionTargets[P]):
             scores_b = scores[mask]
 
             boxes_list.append(boxes_b)
-            classes_list.append(labels_b)
+            classes_list.append(labels_b.float())
             scores_list.append(scores_b)
 
         return DetectionTargets(
@@ -207,8 +207,8 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
     sample = compose(
         compose(
             to_sample,
-            to_numpy,
             itemgetter(0),
+            to_numpy,
             methodcaller(
                 "decode",
                 anchors=model.priors,
