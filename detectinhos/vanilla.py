@@ -114,6 +114,7 @@ def to_numpy(
 
 def to_sample(
     predicted: Optional[DetectionTargets[np.ndarray]],
+    inverse_mapping: dict[int, str],
     file_name: str = "",
 ) -> Sample:
     predictions = (
@@ -130,7 +131,7 @@ def to_sample(
         annotations=[
             Annotation(
                 bbox=box,
-                label=label,
+                label=inverse_mapping[label],
                 score=score,
             )
             for box, label, score in predictions
@@ -193,7 +194,12 @@ class DetectionDataset(torch.utils.data.Dataset):
         )
 
 
-def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
+def infer_on_rgb(
+    image: np.ndarray,
+    model: torch.nn.Module,
+    inverse_mapping: dict[int, str],
+    file: str = "",
+):
     def to_batch(image, file="fake.png") -> Batch:
         return Batch(
             files=[file],
@@ -206,7 +212,7 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
     # On RGB
     sample = compose(
         compose(
-            to_sample,
+            partial(to_sample, inverse_mapping=inverse_mapping),
             itemgetter(0),
             to_numpy,
             methodcaller(
@@ -224,6 +230,7 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
 def infer_on_batch(
     batch: Batch,
     priors: torch.Tensor,
+    inverse_mapping: dict[int, str],
 ) -> tuple[
     list[Sample[Annotation]],
     list[Sample[Annotation]],
@@ -232,9 +239,12 @@ def infer_on_batch(
         raise IOError("First must run the inference")
 
     return (
-        [to_sample(a) for a in to_numpy(batch.true)],  # type: ignore
         [
-            to_sample(a)
+            to_sample(a, inverse_mapping=inverse_mapping)
+            for a in to_numpy(batch.true)  # type: ignore
+        ],
+        [
+            to_sample(a, inverse_mapping=inverse_mapping)
             for a in to_numpy(
                 batch.pred.decode(  # type: ignore
                     priors,
