@@ -95,11 +95,7 @@ def to_numpy(
     result: list[DetectionTargets[np.ndarray]] = []
     if x is None:
         return result
-    scores = (
-        x.scores
-        if x.scores is not None
-        else torch.ones_like(x.classes[..., 0])
-    )
+    scores = x.scores if x.scores is not None else torch.ones_like(x.classes)
     for boxes, classes, scores in zip(x.boxes, x.classes, scores):
         valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
         result.append(
