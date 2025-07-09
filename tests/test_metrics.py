@@ -25,10 +25,12 @@ def batch(
         true=DetectionTargets(  # type: ignore
             boxes=boxes_true,
             classes=classes_true,
+            scores=torch.empty_like(classes_true),
         ),
         pred=DetectionPredictions(  # type: ignore
             boxes=boxes_pred,
             classes=classes_pred,
+            scores=torch.empty_like(classes_pred),
         ),
     )
 
