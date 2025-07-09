@@ -41,6 +41,9 @@ def model():
                 ]
             ]
         ),
+        scores=torch.empty(
+            (),
+        ),
     )
 
     return mock_model
