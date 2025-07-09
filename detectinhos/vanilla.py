@@ -13,8 +13,8 @@ from detectinhos.data import Annotation, Sample, load_rgb
 from detectinhos.encode import decode as decode_boxes
 from detectinhos.sublosses import WeightedLoss
 
-T = TypeVar(
-    "T",
+L = TypeVar(
+    "L",
     np.ndarray,
     torch.Tensor,
     Optional[WeightedLoss],
@@ -22,10 +22,21 @@ T = TypeVar(
 
 
 @dataclass
-class DetectionTargets(Generic[T]):
-    boxes: T  # [B, N, 4]
-    classes: T  # [B, N]
-    scores: Optional[T] = None  # [B, N]
+class DetectionTask(Generic[L]):
+    boxes: L
+    classes: L
+
+
+T = TypeVar(
+    "T",
+    np.ndarray,
+    torch.Tensor,
+)
+
+
+@dataclass
+class DetectionTargets(DetectionTask[T]):
+    scores: T  # [B, N]
 
 
 P = TypeVar(
