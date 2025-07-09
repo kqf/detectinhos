@@ -16,6 +16,7 @@ from detectinhos.vanilla import (
     DetectionDataset,
     DetectionPredictions,
     DetectionTargets,
+    DetectionTask,
 )
 
 
@@ -26,7 +27,7 @@ class DedetectionModel(torch.nn.Module):
         self.anchors: torch.Tensor = anchors
         self.n_clases = n_clases
 
-    def forward(self, images: torch.Tensor) -> DetectionTargets:
+    def forward(self, images: torch.Tensor) -> DetectionPredictions:
         batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
         return DetectionPredictions(
@@ -61,7 +62,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
     )
     loss = DetectionLoss(
         priors=model.anchors,
-        sublosses=DetectionTargets(
+        sublosses=DetectionTask(
             classes=WeightedLoss(
                 loss=retina_confidence_loss,
                 weight=2.0,
