@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from toolz.functoolz import compose
 from torch.nn.utils.rnn import pad_sequence
+from torchvision.ops import nms
 
 from detectinhos.batch import Batch, BatchElement, apply_eval
 from detectinhos.data import Annotation, Sample, load_rgb
@@ -89,9 +90,12 @@ class DetectionPredictions(DetectionTargets[P]):
             labels_b = labels[mask]
             scores_b = scores[mask]
 
-            boxes_list.append(boxes_b)
-            classes_list.append(labels_b.float())
-            scores_list.append(scores_b)
+            # Apply class-agnostic NMS
+            keep = nms(boxes_b, scores_b, nms_threshold)
+
+            boxes_list.append(boxes_b[keep])
+            classes_list.append(labels_b[keep].float())
+            scores_list.append(scores_b[keep])
 
         return DetectionTargets(
             boxes=pad(boxes_list),  # [B, N, 4]
