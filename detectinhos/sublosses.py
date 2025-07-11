@@ -4,7 +4,7 @@ from typing import Callable, Union
 
 import torch
 
-LOSS_FUNCTION_TYPE = Union[
+LossFunctionyType = Union[
     torch.nn.Module,
     Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
 ]
@@ -12,7 +12,7 @@ LOSS_FUNCTION_TYPE = Union[
 
 @dataclass
 class WeightedLoss:
-    loss: LOSS_FUNCTION_TYPE
+    loss: LossFunctionyType
     weight: float = 1.0
     enc_pred: Callable = lambda x, _: x
     enc_true: Callable = lambda x, _: x
@@ -24,7 +24,7 @@ class WeightedLoss:
         return self.weight * self.loss(y_pred_encoded, y_true_encoded)
 
 
-def masked_loss(loss_function: LOSS_FUNCTION_TYPE) -> LOSS_FUNCTION_TYPE:
+def masked_loss(loss_function: LossFunctionyType) -> LossFunctionyType:
     @functools.wraps(loss_function)
     def f(pred: torch.Tensor, data: torch.Tensor) -> torch.Tensor:
         mask = ~torch.isnan(data)
