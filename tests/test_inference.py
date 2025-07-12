@@ -41,11 +41,14 @@ def model():
                 ]
             ]
         ),
+        scores=torch.empty(
+            (),
+        ),
     )
 
     return mock_model
 
 
 def test_infer(image, model):
-    sample = infer_on_rgb(image, model)
+    sample = infer_on_rgb(image, model, {0: "background", 1: "apple"})
     assert len(sample.annotations) == 2

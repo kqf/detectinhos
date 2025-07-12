@@ -7,14 +7,15 @@ import numpy as np
 import torch
 from toolz.functoolz import compose
 from torch.nn.utils.rnn import pad_sequence
+from torchvision.ops import nms
 
 from detectinhos.batch import Batch, BatchElement, apply_eval
 from detectinhos.data import Annotation, Sample, load_rgb
 from detectinhos.encode import decode as decode_boxes
 from detectinhos.sublosses import WeightedLoss
 
-T = TypeVar(
-    "T",
+L = TypeVar(
+    "L",
     np.ndarray,
     torch.Tensor,
     Optional[WeightedLoss],
@@ -22,10 +23,21 @@ T = TypeVar(
 
 
 @dataclass
-class DetectionTargets(Generic[T]):
-    boxes: T  # [B, N, 4]
-    classes: T  # [B, N]
-    scores: Optional[T] = None  # [B, N]
+class DetectionTask(Generic[L]):
+    boxes: L
+    classes: L
+
+
+T = TypeVar(
+    "T",
+    np.ndarray,
+    torch.Tensor,
+)
+
+
+@dataclass
+class DetectionTargets(DetectionTask[T]):
+    scores: T  # [B, N]
 
 
 P = TypeVar(
@@ -78,9 +90,12 @@ class DetectionPredictions(DetectionTargets[P]):
             labels_b = labels[mask]
             scores_b = scores[mask]
 
-            boxes_list.append(boxes_b)
-            classes_list.append(labels_b.float())
-            scores_list.append(scores_b)
+            # Apply class-agnostic NMS
+            keep = nms(boxes_b, scores_b, nms_threshold)
+
+            boxes_list.append(boxes_b[keep])
+            classes_list.append(labels_b[keep].float())
+            scores_list.append(scores_b[keep])
 
         return DetectionTargets(
             boxes=pad(boxes_list),  # [B, N, 4]
@@ -95,11 +110,7 @@ def to_numpy(
     result: list[DetectionTargets[np.ndarray]] = []
     if x is None:
         return result
-    scores = (
-        x.scores
-        if x.scores is not None
-        else torch.ones_like(x.classes[..., 0])
-    )
+    scores = x.scores if x.scores is not None else torch.ones_like(x.classes)
     for boxes, classes, scores in zip(x.boxes, x.classes, scores):
         valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
         result.append(
@@ -114,6 +125,7 @@ def to_numpy(
 
 def to_sample(
     predicted: Optional[DetectionTargets[np.ndarray]],
+    inverse_mapping: dict[int, str],
     file_name: str = "",
 ) -> Sample:
     predictions = (
@@ -130,7 +142,7 @@ def to_sample(
         annotations=[
             Annotation(
                 bbox=box,
-                label=label,
+                label=inverse_mapping[label],
                 score=score,
             )
             for box, label, score in predictions
@@ -160,7 +172,7 @@ def to_targets(
     )
 
 
-TRANSFORM_TYPE = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
+TransformType = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
 
 
 def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
@@ -172,7 +184,7 @@ class DetectionDataset(torch.utils.data.Dataset):
         self,
         labels: list[Sample],
         mapping: dict[str, int],
-        transform: TRANSFORM_TYPE = do_nothing,
+        transform: TransformType = do_nothing,
     ) -> None:
         self.mapping = mapping
         self.transform = transform
@@ -193,7 +205,12 @@ class DetectionDataset(torch.utils.data.Dataset):
         )
 
 
-def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
+def infer_on_rgb(
+    image: np.ndarray,
+    model: torch.nn.Module,
+    inverse_mapping: dict[int, str],
+    file: str = "",
+):
     def to_batch(image, file="fake.png") -> Batch:
         return Batch(
             files=[file],
@@ -206,7 +223,7 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
     # On RGB
     sample = compose(
         compose(
-            to_sample,
+            partial(to_sample, inverse_mapping=inverse_mapping),
             itemgetter(0),
             to_numpy,
             methodcaller(
@@ -224,6 +241,7 @@ def infer_on_rgb(image: np.ndarray, model: torch.nn.Module, file: str = ""):
 def infer_on_batch(
     batch: Batch,
     priors: torch.Tensor,
+    inverse_mapping: dict[int, str],
 ) -> tuple[
     list[Sample[Annotation]],
     list[Sample[Annotation]],
@@ -232,9 +250,12 @@ def infer_on_batch(
         raise IOError("First must run the inference")
 
     return (
-        [to_sample(a) for a in to_numpy(batch.true)],  # type: ignore
         [
-            to_sample(a)
+            to_sample(a, inverse_mapping=inverse_mapping)
+            for a in to_numpy(batch.true)  # type: ignore
+        ],
+        [
+            to_sample(a, inverse_mapping=inverse_mapping)
             for a in to_numpy(
                 batch.pred.decode(  # type: ignore
                     priors,

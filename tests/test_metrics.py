@@ -1,13 +1,14 @@
-from functools import partial
-from typing import Callable
-
 import numpy as np
 import pytest
 import torch
 
 from detectinhos.batch import Batch
 from detectinhos.metrics import MeanAveragePrecision
-from detectinhos.vanilla import DetectionTargets, infer_on_batch
+from detectinhos.vanilla import (
+    DetectionPredictions,
+    DetectionTargets,
+    infer_on_batch,
+)
 
 
 @pytest.fixture
@@ -21,27 +22,32 @@ def batch(
     return Batch(
         files=["fake.png"],
         image=torch.from_numpy(image),
-        true=DetectionTargets(
+        true=DetectionTargets(  # type: ignore
             boxes=boxes_true,
             classes=classes_true,
+            scores=torch.empty_like(classes_true),
         ),
-        pred=DetectionTargets(
+        pred=DetectionPredictions(  # type: ignore
             boxes=boxes_pred,
             classes=classes_pred,
+            scores=torch.empty_like(classes_pred),
         ),
     )
-
-
-@pytest.fixture
-def inference(pred, sample_anchors):
-    return partial(infer_on_batch, priors=sample_anchors)
 
 
 # @pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
-    inference: Callable[..., torch.Tensor],
+    sample_anchors: torch.Tensor,
 ):
-    map_metric = MeanAveragePrecision(num_classes=2)
-    map_metric.add(inference(batch))
+    mapping = {"background": 0, "apple": 1}
+    inverse_mapping = {v: k for k, v in mapping.items()}
+    map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
+    map_metric.add(
+        *infer_on_batch(
+            batch,
+            priors=sample_anchors,
+            inverse_mapping=inverse_mapping,
+        )
+    )
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
