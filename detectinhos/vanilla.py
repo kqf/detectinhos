@@ -172,7 +172,7 @@ def to_targets(
     )
 
 
-TransformType = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
+DatasetAugmentation = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
 
 
 def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
@@ -184,7 +184,7 @@ class DetectionDataset(torch.utils.data.Dataset):
         self,
         labels: list[Sample],
         mapping: dict[str, int],
-        transform: TransformType = do_nothing,
+        transform: DatasetAugmentation = do_nothing,
     ) -> None:
         self.mapping = mapping
         self.transform = transform
