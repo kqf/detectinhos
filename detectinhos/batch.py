@@ -57,7 +57,7 @@ def detection_collate(
         field.name: pad_sequence(
             [torch.Tensor(getattr(e.true, field.name)) for e in batch],
             batch_first=True,
-            padding_value=0,
+            padding_value=float("nan"),
         )
         for field in fields(batch[0].true)
     }
