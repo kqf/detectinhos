@@ -80,7 +80,7 @@ class DetectionPredictions(DetectionTargets[P]):
         for b in range(B):
             logits = self.classes[b]  # [A, C]
             confidence = torch.nn.functional.softmax(logits, dim=-1)
-            scores, labels = confidence[:, 1:].max(dim=-1)  # drop bg class
+            scores, labels = confidence[..., 1:].max(dim=-1)  # drop bg class
             labels += 1  # shift to match class IDs
 
             decoded_boxes = decode_boxes(self.boxes[b], anchors, variances)
