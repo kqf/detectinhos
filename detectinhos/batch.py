@@ -63,6 +63,3 @@ def detection_collate(
     }
     files = [sample.file for sample in batch]
     return Batch(files, images, to_targets(**targets))
-
-
-OT = TypeVar("OT")
