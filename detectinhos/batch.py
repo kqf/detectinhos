@@ -66,13 +66,3 @@ def detection_collate(
 
 
 OT = TypeVar("OT")
-
-
-def on_batch(
-    batch: Batch,
-    pipeline: Callable[[HasBoxesAndClasses[torch.Tensor]], OT],
-) -> list[OT]:
-    if batch.pred is None:
-        raise ValueError("Cannot perform inference: batch.pred is empty.")
-
-    return [pipeline(batch.pred[i]) for i, _ in enumerate(batch.files)]
