@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import partial
 from operator import itemgetter, methodcaller
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 import numpy as np
 import torch
@@ -9,8 +9,8 @@ from toolz.functoolz import compose
 from torch.nn.utils.rnn import pad_sequence
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch, BatchElement, apply_eval
-from detectinhos.data import Annotation, Sample, load_rgb
+from detectinhos.batch import Batch, apply_eval
+from detectinhos.data import Annotation, Sample
 from detectinhos.encode import decode as decode_boxes
 from detectinhos.sublosses import WeightedLoss
 
@@ -163,39 +163,6 @@ def to_targets(
         classes=np.array(label_ids, dtype=np.int64),
         scores=np.array(scores, dtype=np.float32),
     )
-
-
-DatasetAugmentation = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
-
-
-def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
-    return x, y
-
-
-class DetectionDataset(torch.utils.data.Dataset):
-    def __init__(
-        self,
-        labels: list[Sample],
-        mapping: dict[str, int],
-        transform: DatasetAugmentation = do_nothing,
-    ) -> None:
-        self.mapping = mapping
-        self.transform = transform
-        self.labels = labels
-
-    def __len__(self) -> int:
-        return len(self.labels)
-
-    def __getitem__(self, index: int) -> BatchElement[torch.Tensor]:
-        sample = self.labels[index]
-        image = load_rgb(sample.file_name)
-        targets = to_targets(sample, self.mapping)
-        image_t, targets_t = self.transform(image, targets)
-        return BatchElement(
-            file=sample.file_name,
-            image=image_t,
-            true=targets_t,
-        )
 
 
 def infer_on_rgb(
