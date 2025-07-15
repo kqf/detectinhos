@@ -5,6 +5,7 @@ import torch
 from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.data import Annotation, Sample, read_dataset
+from detectinhos.dataset import DetectionDataset
 from detectinhos.encode import encode
 from detectinhos.loss import DetectionLoss
 from detectinhos.sublosses import (
@@ -13,7 +14,6 @@ from detectinhos.sublosses import (
     retina_confidence_loss,
 )
 from detectinhos.vanilla import (
-    DetectionDataset,
     DetectionPredictions,
     DetectionTargets,
     DetectionTask,
