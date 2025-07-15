@@ -64,13 +64,6 @@ class DetectionPredictions(DetectionTargets[P]):
         nms_threshold: float = 0.4,
         confidence_threshold: float = 0.5,
     ) -> DetectionTargets[torch.Tensor]:
-        """
-        Decode predictions to padded DetectionTargets with shape:
-        - boxes: [B, N, 4]
-        - classes: [B, N]
-        - scores: [B, N]
-        where N is max number of detections in the batch.
-        """
         boxes_list = []
         classes_list = []
         scores_list = []
