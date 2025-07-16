@@ -7,7 +7,6 @@ import torch
 
 from detectinhos.batch import BatchElement
 from detectinhos.data import Sample
-from detectinhos.vanilla import to_targets
 
 T = TypeVar(
     "T",
@@ -33,10 +32,12 @@ class DetectionDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         labels: list[Sample],
+        to_targets: Callable[[Sample], T],
         transform: DatasetAugmentation = do_nothing,
     ) -> None:
         self.transform = transform
         self.labels = labels
+        self.to_targets = to_targets
 
     def __len__(self) -> int:
         return len(self.labels)
@@ -44,7 +45,7 @@ class DetectionDataset(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> BatchElement[torch.Tensor]:
         sample = self.labels[index]
         raw_image = load_rgb(sample.file_name)
-        raw_targets = to_targets(sample, {})
+        raw_targets = self.to_targets(sample)
         image, targets = self.transform(
             raw_image,
             raw_targets,
