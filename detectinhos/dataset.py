@@ -1,10 +1,12 @@
+from pathlib import Path
 from typing import Callable, TypeVar
 
+import cv2
 import numpy as np
 import torch
 
 from detectinhos.batch import BatchElement
-from detectinhos.data import Sample, load_rgb
+from detectinhos.data import Sample
 from detectinhos.vanilla import to_targets
 
 T = TypeVar(
@@ -19,6 +21,12 @@ def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
 
 
 DatasetAugmentation = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
+
+
+def load_rgb(image_path: Path | str) -> np.ndarray:
+    image = cv2.imread(str(image_path))
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    return image
 
 
 class DetectionDataset(torch.utils.data.Dataset):
