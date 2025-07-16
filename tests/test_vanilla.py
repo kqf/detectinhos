@@ -17,6 +17,7 @@ from detectinhos.vanilla import (
     DetectionPredictions,
     DetectionTargets,
     DetectionTask,
+    to_targets,
 )
 
 
@@ -41,7 +42,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
             labels=read_dataset(annotations, Sample[Annotation]) * 8,
-            mapping={"person": 1},
+            to_targets=partial(to_targets, mapping={"person": 1}),
         ),
         batch_size=4,
         num_workers=1,
