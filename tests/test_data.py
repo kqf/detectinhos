@@ -1,4 +1,4 @@
-from detectinhos.data import Annotation, Sample, read_dataset
+from detectinhos.sample import Annotation, Sample, read_dataset
 
 
 def test_reads_dataset(annotations):

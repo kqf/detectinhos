@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from detectinhos.batch import BatchElement
-from detectinhos.data import Sample
+from detectinhos.sample import Sample
 
 T = TypeVar(
     "T",

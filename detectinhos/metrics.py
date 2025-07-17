@@ -3,7 +3,7 @@ from typing import List, Tuple
 import numpy as np
 from mean_average_precision import MetricBuilder
 
-from detectinhos.data import Annotation, Sample
+from detectinhos.sample import Annotation, Sample
 
 
 def to_table(

@@ -10,8 +10,8 @@ from torch.nn.utils.rnn import pad_sequence
 from torchvision.ops import nms
 
 from detectinhos.batch import Batch, apply_eval
-from detectinhos.data import Annotation, Sample
 from detectinhos.encode import decode as decode_boxes
+from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
 L = TypeVar(
