@@ -4,10 +4,10 @@ import torch
 
 from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
-from detectinhos.data import Annotation, Sample, read_dataset
 from detectinhos.dataset import DetectionDataset
 from detectinhos.encode import encode
 from detectinhos.loss import DetectionLoss
+from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.sublosses import (
     WeightedLoss,
     masked_loss,
