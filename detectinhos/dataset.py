@@ -8,7 +8,6 @@ import torch
 from detectinhos.batch import BatchElement
 from detectinhos.sample import Sample
 
-
 T = TypeVar(
     "T",
     np.ndarray,
