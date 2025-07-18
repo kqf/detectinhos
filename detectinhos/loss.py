@@ -51,7 +51,7 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     def is_dataclass(cls) -> bool: ...
 
 
-MatchingType = Callable[
+Matching = Callable[
     [
         HasBoxesAndClasses[torch.Tensor],
         HasBoxesAndClasses[torch.Tensor],
@@ -66,7 +66,7 @@ class DetectionLoss(Generic[LossContainer], nn.Module):
         self,
         priors: torch.Tensor,
         sublosses: LossContainer,
-        match: MatchingType = partial(
+        match: Matching = partial(
             match,
             negpos_ratio=7,
             overalp=0.35,
