@@ -19,7 +19,7 @@ def do_nothing(x: np.ndarray, y: T) -> tuple[np.ndarray, T]:
     return x, y
 
 
-DatasetAugmentation = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
+Augmentation = Callable[[np.ndarray, T], tuple[np.ndarray, T]]
 
 
 def load_rgb(image_path: Path | str) -> np.ndarray:
@@ -33,7 +33,7 @@ class DetectionDataset(torch.utils.data.Dataset):
         self,
         labels: list[Sample],
         to_targets: Callable[[Sample], T],
-        transform: DatasetAugmentation = do_nothing,
+        transform: Augmentation = do_nothing,
     ) -> None:
         self.transform = transform
         self.labels = labels
