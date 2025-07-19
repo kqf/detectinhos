@@ -46,6 +46,7 @@ LossContainer = TypeVar(
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
+    scores: T
     boxes: T
     classes: T
 
@@ -120,7 +121,7 @@ def pad(sequence):
     )  # [B, N, 4]
 
 
-def decode(
+def decod(
     pred: HasBoxesAndClasses[torch.Tensor],
     sublosses: HasBoxesAndClasses[WeightedLoss],
     priors: torch.Tensor,
