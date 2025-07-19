@@ -121,7 +121,7 @@ def pad(sequence):
     )  # [B, N, 4]
 
 
-def decod(
+def decode(
     pred: HasBoxesAndClasses[torch.Tensor],
     sublosses: HasBoxesAndClasses[WeightedLoss],
     priors: torch.Tensor,
