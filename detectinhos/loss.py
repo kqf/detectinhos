@@ -135,8 +135,8 @@ def decod(
 
     for b in range(n_batches):
         # Decode boxes and scores
-        boxes = sublosses.boxes.decode(pred.boxes[b], priors)
-        scores = sublosses.scores.decode(pred.scores[b], priors)
+        boxes = sublosses.boxes.dec_pred(pred.boxes[b], priors)
+        scores = sublosses.scores.dec_pred(pred.scores[b], priors)
 
         mask = scores > confidence_threshold
         keep = nms(boxes[mask], scores[mask], iou_threshold=nms_threshold)
@@ -145,7 +145,7 @@ def decod(
             name = field.name
             subloss = getattr(sublosses, name)
             raw = getattr(pred, name)[b]
-            decoded = subloss.decode(raw, priors)
+            decoded = subloss.dec_pred(raw, priors)
             filtered = decoded[mask][keep]
             decoded_fields[name].append(filtered)
 
