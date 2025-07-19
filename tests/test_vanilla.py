@@ -16,7 +16,6 @@ from detectinhos.sublosses import (
 from detectinhos.vanilla import (
     DetectionPredictions,
     DetectionTargets,
-    DetectionTask,
     to_targets,
 )
 
@@ -63,7 +62,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
     )
     loss = DetectionLoss(
         priors=model.anchors,
-        sublosses=DetectionTask(
+        sublosses=DetectionTargets(
             classes=WeightedLoss(
                 loss=retina_confidence_loss,
                 weight=2.0,
