@@ -14,6 +14,7 @@ LossFunctionyType = Union[
 class WeightedLoss:
     loss: Optional[LossFunctionyType]
     weight: float = 1.0
+    dec_pred: Callable = lambda x, _: x
     enc_pred: Callable = lambda x, _: x
     enc_true: Callable = lambda x, _: x
     needs_negatives: bool = False
