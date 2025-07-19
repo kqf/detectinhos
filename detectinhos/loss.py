@@ -94,7 +94,7 @@ class DetectionLoss(Generic[LossContainer], nn.Module):
         for field in fields(self.sublosses):
             name = field.name
             subloss: WeightedLoss = getattr(self.sublosses, name)
-            if subloss is None:
+            if subloss.loss is None:
                 continue
             y_pred_, y_true_, anchor_ = select(
                 getattr(y_pred, name),

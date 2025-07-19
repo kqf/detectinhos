@@ -63,6 +63,12 @@ def test_vanilla(annotations, resolution=(480, 640)):
     loss = DetectionLoss(
         priors=model.anchors,
         sublosses=DetectionTargets(
+            scores=WeightedLoss(
+                loss=retina_confidence_loss,
+                weight=0.0,
+                needs_negatives=True,
+                exclude=True,  # Exclude from loss calculation
+            ),
             classes=WeightedLoss(
                 loss=retina_confidence_loss,
                 weight=2.0,

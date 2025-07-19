@@ -18,7 +18,7 @@ T = TypeVar(
     "T",
     np.ndarray,
     torch.Tensor,
-    Optional[WeightedLoss],
+    WeightedLoss,
 )
 
 

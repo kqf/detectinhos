@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import torch
 
@@ -12,7 +12,7 @@ LossFunctionyType = Union[
 
 @dataclass
 class WeightedLoss:
-    loss: LossFunctionyType
+    loss: Optional[LossFunctionyType]
     weight: float = 1.0
     enc_pred: Callable = lambda x, _: x
     enc_true: Callable = lambda x, _: x
