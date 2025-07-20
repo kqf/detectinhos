@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from operator import itemgetter, methodcaller
+from operator import itemgetter
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
@@ -162,6 +162,7 @@ def infer_on_rgb(
     image: np.ndarray,
     model: torch.nn.Module,
     inverse_mapping: dict[int, str],
+    decode,
     file: str = "",
 ):
     def to_batch(image, file="fake.png") -> Batch:
@@ -179,10 +180,7 @@ def infer_on_rgb(
             partial(to_sample, inverse_mapping=inverse_mapping),
             itemgetter(0),
             to_numpy,
-            methodcaller(
-                "decode",
-                anchors=model.priors,
-            ),
+            partial(decode, anchors=model.priors),
         ),
         partial(apply_eval, model=model),
         to_batch,
@@ -195,6 +193,7 @@ def infer_on_batch(
     batch: Batch,
     priors: torch.Tensor,
     inverse_mapping: dict[int, str],
+    decode,
 ) -> tuple[
     list[Sample[Annotation]],
     list[Sample[Annotation]],
@@ -210,9 +209,9 @@ def infer_on_batch(
         [
             to_sample(a, inverse_mapping=inverse_mapping)
             for a in to_numpy(
-                batch.pred.decode(  # type: ignore
+                decode(
+                    batch.pred,
                     priors,
-                    variances=[0.1, 0.2],
                     confidence_threshold=0.01,
                     nms_threshold=2.0,
                 )
