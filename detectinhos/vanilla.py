@@ -162,8 +162,8 @@ def build_inference_on_rgb(
 def build_inference_on_batch(
     priors: torch.Tensor,
     inverse_mapping: dict[int, str],
-    confidence_threshold=0.01,
-    nms_threshold=2.0,
+    confidence_threshold=0.5,
+    nms_threshold=0.4,
 ):
     return partial(
         generic_infer_on_batch,
