@@ -10,9 +10,13 @@ from torch.nn.utils.rnn import pad_sequence
 from torchvision.ops import nms
 
 from detectinhos.batch import Batch, apply_eval
-from detectinhos.encode import decode as decode_boxes
+from detectinhos.encode import decode as decode_boxes, encode
 from detectinhos.sample import Annotation, Sample
-from detectinhos.sublosses import WeightedLoss
+from detectinhos.sublosses import (
+    WeightedLoss,
+    masked_loss,
+    retina_confidence_loss,
+)
 
 T = TypeVar(
     "T",
@@ -215,3 +219,34 @@ def infer_on_batch(
             )
         ],
     )
+
+
+VANILLA_TASK = DetectionTargets(
+    scores=WeightedLoss(
+        loss=None,
+        # NB: drop the background class
+        dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
+            ..., 1:
+        ].max(dim=-1)[0],
+    ),
+    classes=WeightedLoss(
+        loss=retina_confidence_loss,
+        weight=2.0,
+        enc_pred=lambda x, _: x.reshape(-1, 2),
+        enc_true=lambda x, _: x,
+        # NB: drop the background class, labels += 1
+        dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
+            ..., 1:
+        ].max(dim=-1)[1]
+        + 1,
+        needs_negatives=True,
+    ),
+    boxes=WeightedLoss(
+        loss=masked_loss(torch.nn.SmoothL1Loss()),
+        weight=1.0,
+        enc_pred=lambda x, _: x,
+        enc_true=partial(encode, variances=[0.1, 0.2]),
+        dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
+        needs_negatives=False,
+    ),
+)

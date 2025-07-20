@@ -5,15 +5,10 @@ import torch
 from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
-from detectinhos.encode import decode, encode
 from detectinhos.loss import DetectionLoss
 from detectinhos.sample import Annotation, Sample, read_dataset
-from detectinhos.sublosses import (
-    WeightedLoss,
-    masked_loss,
-    retina_confidence_loss,
-)
 from detectinhos.vanilla import (
+    VANILLA_TASK,
     DetectionPredictions,
     DetectionTargets,
     to_targets,
@@ -62,35 +57,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
     )
     loss = DetectionLoss(
         priors=model.anchors,
-        sublosses=DetectionTargets(
-            scores=WeightedLoss(
-                loss=None,
-                # NB: drop the background class
-                dec_pred=lambda logits, _: torch.nn.functional.softmax(
-                    logits, dim=-1
-                )[..., 1:].max(dim=-1)[0],
-            ),
-            classes=WeightedLoss(
-                loss=retina_confidence_loss,
-                weight=2.0,
-                enc_pred=lambda x, _: x.reshape(-1, 2),
-                enc_true=lambda x, _: x,
-                # NB: drop the background class, labels += 1
-                dec_pred=lambda logits, _: torch.nn.functional.softmax(
-                    logits, dim=-1
-                )[..., 1:].max(dim=-1)[1]
-                + 1,
-                needs_negatives=True,
-            ),
-            boxes=WeightedLoss(
-                loss=masked_loss(torch.nn.SmoothL1Loss()),
-                weight=1.0,
-                enc_pred=lambda x, _: x,
-                enc_true=partial(encode, variances=[0.1, 0.2]),
-                dec_pred=partial(decode, variances=[0.1, 0.2]),
-                needs_negatives=False,
-            ),
-        ),
+        sublosses=VANILLA_TASK,
     )
 
     # sourcery skip: no-loop-in-tests
