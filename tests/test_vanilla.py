@@ -9,7 +9,6 @@ from detectinhos.loss import DetectionLoss
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     VANILLA_TASK,
-    DetectionPredictions,
     DetectionTargets,
     to_targets,
 )
@@ -22,10 +21,10 @@ class DedetectionModel(torch.nn.Module):
         self.anchors: torch.Tensor = anchors
         self.n_clases = n_clases
 
-    def forward(self, images: torch.Tensor) -> DetectionPredictions:
+    def forward(self, images: torch.Tensor) -> DetectionTargets:
         batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
-        return DetectionPredictions(
+        return DetectionTargets(
             classes=torch.rand((batch, num_anchors, self.n_clases)),
             boxes=torch.rand((batch, num_anchors, 4)),
             scores=torch.empty((batch, num_anchors)),

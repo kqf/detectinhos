@@ -5,7 +5,6 @@ import torch
 from detectinhos.batch import Batch
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import (
-    DetectionPredictions,
     DetectionTargets,
     infer_on_batch,
 )
@@ -27,7 +26,7 @@ def batch(
             classes=classes_true,
             scores=torch.empty_like(classes_true),
         ),
-        pred=DetectionPredictions(  # type: ignore
+        pred=DetectionTargets(  # type: ignore
             boxes=boxes_pred,
             classes=classes_pred,
             scores=torch.empty_like(classes_pred),

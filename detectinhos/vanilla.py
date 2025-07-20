@@ -6,8 +6,6 @@ from typing import Generic, Optional, TypeVar
 import numpy as np
 import torch
 from toolz.functoolz import compose
-from torch.nn.utils.rnn import pad_sequence
-from torchvision.ops import nms
 
 from detectinhos.batch import Batch, apply_eval
 from detectinhos.encode import decode as decode_boxes, encode
@@ -32,63 +30,6 @@ class DetectionTargets(Generic[T]):
     scores: T  # [B, N]
     boxes: T
     classes: T
-
-
-P = TypeVar(
-    "P",
-    np.ndarray,
-    torch.Tensor,
-)
-
-
-def pad(sequence):
-    return pad_sequence(
-        sequence,
-        batch_first=True,
-        padding_value=float("nan"),
-    )  # [B, N, 4]
-
-
-@dataclass
-class DetectionPredictions(DetectionTargets[P]):
-    def decode(
-        self,
-        anchors: torch.Tensor,
-        variances: tuple[float, float] = (0.1, 0.2),
-        nms_threshold: float = 0.4,
-        confidence_threshold: float = 0.5,
-    ) -> DetectionTargets[torch.Tensor]:
-        boxes_list = []
-        classes_list = []
-        scores_list = []
-
-        B = self.boxes.shape[0]
-
-        for b in range(B):
-            logits = self.classes[b]  # [A, C]
-            confidence = torch.nn.functional.softmax(logits, dim=-1)
-            scores, labels = confidence[..., 1:].max(dim=-1)  # drop bg class
-            labels += 1  # shift to match class IDs
-
-            decoded_boxes = decode_boxes(self.boxes[b], anchors, variances)
-
-            mask = scores > confidence_threshold
-            boxes_b = decoded_boxes[mask]
-            labels_b = labels[mask]
-            scores_b = scores[mask]
-
-            # Apply class-agnostic NMS
-            keep = nms(boxes_b, scores_b, nms_threshold)
-
-            boxes_list.append(boxes_b[keep])
-            classes_list.append(labels_b[keep].float())
-            scores_list.append(scores_b[keep])
-
-        return DetectionTargets(
-            boxes=pad(boxes_list),  # [B, N, 4]
-            classes=pad(classes_list),  # [B, N]
-            scores=pad(scores_list),  # [B, N]
-        )
 
 
 def to_numpy(
