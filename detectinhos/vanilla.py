@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from functools import partial
-from operator import itemgetter
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
 import torch
-from toolz.functoolz import compose
 
-from detectinhos.batch import Batch, apply_eval
 from detectinhos.encode import decode as decode_boxes, encode
+from detectinhos.inference import generic_infer_on_batch, generic_infer_on_rgb
 from detectinhos.loss import decode
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import (
@@ -137,61 +135,43 @@ decode_vanilla = partial(
 )
 
 
-def infer_on_rgb(
-    image: np.ndarray,
+def build_inference_on_rgb(
     model: torch.nn.Module,
-    inverse_mapping: dict[int, str],
-    file: str = "",
-):
-    def to_batch(image, file="fake.png") -> Batch:
-        return Batch(
-            files=[file],
-            image=torch.from_numpy(image)
-            .permute(2, 0, 1)
-            .float()
-            .unsqueeze(0),
-        )
-
-    # On RGB
-    sample = compose(
-        compose(
-            partial(to_sample, inverse_mapping=inverse_mapping),
-            itemgetter(0),
-            to_numpy,
-            partial(decode_vanilla, priors=model.priors),
-        ),
-        partial(apply_eval, model=model),
-        to_batch,
-    )(image)
-    sample.file_name = file
-    return sample
-
-
-def infer_on_batch(
-    batch: Batch,
     priors: torch.Tensor,
     inverse_mapping: dict[int, str],
-) -> tuple[
-    list[Sample[Annotation]],
-    list[Sample[Annotation]],
-]:
-    if batch.pred is None:
-        raise IOError("First must run the inference")
+    confidence_threshold=0.5,
+    nms_threshold=0.4,
+):
+    return partial(
+        generic_infer_on_rgb,
+        model=model,
+        priors=priors,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
+        to_numpy=to_numpy,
+        decode=partial(
+            decode_vanilla,
+            confidence_threshold=confidence_threshold,
+            nms_threshold=nms_threshold,
+        ),
+    )
 
-    return (
-        [
-            to_sample(a, inverse_mapping=inverse_mapping)
-            for a in to_numpy(batch.true)  # type: ignore
-        ],
-        [
-            to_sample(a, inverse_mapping=inverse_mapping)
-            for a in to_numpy(
-                decode_vanilla(  # type: ignore
-                    batch.pred,
-                    priors=priors,
-                    confidence_threshold=0.01,
-                    nms_threshold=2.0,
-                )
-            )
-        ],
+
+def build_inference_on_batch(
+    priors: torch.Tensor,
+    confidence_threshold=0.01,
+    nms_threshold=2.0,
+):
+    return partial(
+        generic_infer_on_batch,
+        priors=priors,
+        to_numpy=to_numpy,
+        to_sample=to_sample,
+        decode=partial(
+            decode_vanilla,
+            confidence_threshold=confidence_threshold,
+            nms_threshold=nms_threshold,
+        ),
     )

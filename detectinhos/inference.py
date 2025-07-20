@@ -1,9 +1,13 @@
+from functools import partial
+from operator import itemgetter
 from typing import Generic, Protocol, TypeVar
 
+import numpy as np
 import torch
-from torchvision.ops import nms
+from toolz.functoolz import compose
 
-from detectinhos.encode import decode as decode_boxes
+from detectinhos.batch import Batch, apply_eval
+from detectinhos.sample import Annotation, Sample
 
 T = TypeVar("T")
 
@@ -15,30 +19,61 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
 
 
-def decode(
-    y_pred: HasBoxesAndClasses[torch.Tensor],
-    anchors: torch.Tensor,
-    variances: tuple[float, float] = (0.1, 0.2),
-    nms_threshold: float = 0.4,
-    confidence_threshold: float = 0.5,
-) -> torch.Tensor:
-    confidence = torch.nn.functional.softmax(y_pred.classes, dim=-1)
-    # TODO: Fix the mutations of boxes
-    y_pred.boxes = decode_boxes(
-        y_pred.boxes,
-        anchors,
-        variances,
+def generic_infer_on_rgb(
+    image: np.ndarray,
+    model: torch.nn.Module,
+    priors: torch.Tensor,
+    to_sample,
+    to_numpy,
+    decode,
+    file: str = "",
+):
+    def to_batch(image, file="fake.png") -> Batch:
+        return Batch(
+            files=[file],
+            image=torch.from_numpy(image)
+            .permute(2, 0, 1)
+            .float()
+            .unsqueeze(0),
+        )
+
+    # On RGB
+    sample = compose(
+        compose(
+            to_sample,
+            itemgetter(0),
+            to_numpy,
+            partial(decode, priors=priors),
+        ),
+        partial(apply_eval, model=model),
+        to_batch,
+    )(image)
+    sample.file_name = file
+    return sample
+
+
+def generic_infer_on_batch(
+    batch: Batch,
+    priors: torch.Tensor,
+    to_numpy,
+    to_sample,
+    decode,
+) -> tuple[
+    list[Sample[Annotation]],
+    list[Sample[Annotation]],
+]:
+    if batch.pred is None:
+        raise IOError("First must run the inference")
+
+    return (
+        [to_sample(a) for a in to_numpy(batch.true)],
+        [
+            to_sample(a)
+            for a in to_numpy(
+                decode(
+                    batch.pred,
+                    priors=priors,
+                )
+            )
+        ],
     )
-    # NB: Convention it's desired to start class_ids from 0,
-    # 0 is for background it's not included
-    score = confidence[:, 1:]
-
-    valid_index = torch.where((score > confidence_threshold).any(-1))[0]
-
-    # NMS doesn't accept fp16 inputs
-    boxes_cand = y_pred.boxes[valid_index].float()
-    probs_cand, _ = score[valid_index].float().max(dim=-1)
-
-    # do NMS
-    keep = nms(boxes_cand, probs_cand, nms_threshold)
-    return y_pred[valid_index[keep]]
