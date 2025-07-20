@@ -15,6 +15,16 @@ def image():
 @pytest.fixture
 def model():
     mock_model = Mock()
+
+    classes = torch.tensor(
+        [
+            [
+                [0.0, 0.8],
+                [0.9, 0.00],
+                [0.0, 0.9],
+            ]
+        ]
+    )
     mock_model.priors = torch.tensor(
         [
             [0.1, 0.1, 0.2, 0.2],
@@ -32,18 +42,8 @@ def model():
                 ]
             ]
         ),
-        classes=torch.tensor(
-            [
-                [
-                    [0.0, 0.8],
-                    [0.9, 0.00],
-                    [0.0, 0.9],
-                ]
-            ]
-        ),
-        scores=torch.empty(
-            (),
-        ),
+        classes=classes,
+        scores=classes,
     )
 
     return mock_model
