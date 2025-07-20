@@ -52,6 +52,7 @@ def generic_infer_on_rgb(
     return sample
 
 
+# TODO: Do we need this function at all?
 def generic_infer_on_batch(
     batch: Batch,
     priors: torch.Tensor,

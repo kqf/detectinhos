@@ -24,13 +24,16 @@ class DedetectionModel(torch.nn.Module):
     def forward(self, images: torch.Tensor) -> DetectionTargets:
         batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
+        classes = torch.rand((batch, num_anchors, self.n_clases))
         return DetectionTargets(
-            classes=torch.rand((batch, num_anchors, self.n_clases)),
+            # Return the same tensor twice, one for scores another for labels
+            scores=classes,
+            classes=classes,
             boxes=torch.rand((batch, num_anchors, 4)),
-            scores=torch.empty((batch, num_anchors)),
         )
 
 
+# TODO: Do we need other tests at all?
 def test_vanilla(annotations, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
