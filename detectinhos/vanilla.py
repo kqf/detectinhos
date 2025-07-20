@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from operator import itemgetter, methodcaller
+from operator import itemgetter
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
@@ -11,6 +11,7 @@ from torchvision.ops import nms
 
 from detectinhos.batch import Batch, apply_eval
 from detectinhos.encode import decode as decode_boxes, encode
+from detectinhos.loss import decode
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import (
     WeightedLoss,
@@ -158,6 +159,43 @@ def to_targets(
     )
 
 
+VANILLA_TASK = DetectionTargets(
+    scores=WeightedLoss(
+        loss=None,
+        # NB: drop the background class
+        dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
+            ..., 1:
+        ].max(dim=-1)[0],
+    ),
+    classes=WeightedLoss(
+        loss=retina_confidence_loss,
+        weight=2.0,
+        enc_pred=lambda x, _: x.reshape(-1, 2),
+        enc_true=lambda x, _: x,
+        # NB: drop the background class, labels += 1
+        dec_pred=lambda logits, _: (
+            torch.nn.functional.softmax(logits, dim=-1)[..., 1:].max(dim=-1)[1]
+            + 1
+        ).float(),
+        needs_negatives=True,
+    ),
+    boxes=WeightedLoss(
+        loss=masked_loss(torch.nn.SmoothL1Loss()),
+        weight=1.0,
+        enc_pred=lambda x, _: x,
+        enc_true=partial(encode, variances=[0.1, 0.2]),
+        dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
+        needs_negatives=False,
+    ),
+)
+
+
+decode_vanilla = partial(
+    decode,
+    sublosses=VANILLA_TASK,
+)
+
+
 def infer_on_rgb(
     image: np.ndarray,
     model: torch.nn.Module,
@@ -179,10 +217,7 @@ def infer_on_rgb(
             partial(to_sample, inverse_mapping=inverse_mapping),
             itemgetter(0),
             to_numpy,
-            methodcaller(
-                "decode",
-                anchors=model.priors,
-            ),
+            partial(decode_vanilla, priors=model.priors),
         ),
         partial(apply_eval, model=model),
         to_batch,
@@ -210,43 +245,12 @@ def infer_on_batch(
         [
             to_sample(a, inverse_mapping=inverse_mapping)
             for a in to_numpy(
-                batch.pred.decode(  # type: ignore
-                    priors,
-                    variances=[0.1, 0.2],
+                decode_vanilla(  # type: ignore
+                    batch.pred,
+                    priors=priors,
                     confidence_threshold=0.01,
                     nms_threshold=2.0,
                 )
             )
         ],
     )
-
-
-VANILLA_TASK = DetectionTargets(
-    scores=WeightedLoss(
-        loss=None,
-        # NB: drop the background class
-        dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
-            ..., 1:
-        ].max(dim=-1)[0],
-    ),
-    classes=WeightedLoss(
-        loss=retina_confidence_loss,
-        weight=2.0,
-        enc_pred=lambda x, _: x.reshape(-1, 2),
-        enc_true=lambda x, _: x,
-        # NB: drop the background class, labels += 1
-        dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
-            ..., 1:
-        ].max(dim=-1)[1]
-        + 1,
-        needs_negatives=True,
-    ),
-    boxes=WeightedLoss(
-        loss=masked_loss(torch.nn.SmoothL1Loss()),
-        weight=1.0,
-        enc_pred=lambda x, _: x,
-        enc_true=partial(encode, variances=[0.1, 0.2]),
-        dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
-        needs_negatives=False,
-    ),
-)
