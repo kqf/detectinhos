@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from detectinhos.vanilla import DetectionPredictions, infer_on_rgb
+from detectinhos.vanilla import DetectionTargets, build_inference_on_rgb
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def model():
             [0.3, 0.3, 0.4, 0.4],
         ]
     )
-    mock_model.return_value = DetectionPredictions(
+    mock_model.return_value = DetectionTargets(
         boxes=torch.tensor(
             [
                 [
@@ -50,5 +50,10 @@ def model():
 
 
 def test_infer(image, model):
-    sample = infer_on_rgb(image, model, {0: "background", 1: "apple"})
+    infer_on_rgb = build_inference_on_rgb(
+        model,
+        priors=model.priors,
+        inverse_mapping={0: "background", 1: "apple"},
+    )
+    sample = infer_on_rgb(image)
     assert len(sample.annotations) == 2

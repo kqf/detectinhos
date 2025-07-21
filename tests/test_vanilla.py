@@ -9,7 +9,6 @@ from detectinhos.loss import DetectionLoss
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     VANILLA_TASK,
-    DetectionPredictions,
     DetectionTargets,
     to_targets,
 )
@@ -22,16 +21,19 @@ class DedetectionModel(torch.nn.Module):
         self.anchors: torch.Tensor = anchors
         self.n_clases = n_clases
 
-    def forward(self, images: torch.Tensor) -> DetectionPredictions:
+    def forward(self, images: torch.Tensor) -> DetectionTargets:
         batch = images.shape[0]
         num_anchors = self.anchors.shape[0]
-        return DetectionPredictions(
-            classes=torch.rand((batch, num_anchors, self.n_clases)),
+        classes = torch.rand((batch, num_anchors, self.n_clases))
+        return DetectionTargets(
+            # Return the same tensor twice, one for scores another for labels
+            scores=classes,
+            classes=classes,
             boxes=torch.rand((batch, num_anchors, 4)),
-            scores=torch.empty((batch, num_anchors)),
         )
 
 
+# TODO: Do we need other tests at all?
 def test_vanilla(annotations, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(

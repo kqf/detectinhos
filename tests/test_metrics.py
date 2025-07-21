@@ -5,9 +5,8 @@ import torch
 from detectinhos.batch import Batch
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.vanilla import (
-    DetectionPredictions,
     DetectionTargets,
-    infer_on_batch,
+    build_inference_on_batch,
 )
 
 
@@ -27,7 +26,7 @@ def batch(
             classes=classes_true,
             scores=torch.empty_like(classes_true),
         ),
-        pred=DetectionPredictions(  # type: ignore
+        pred=DetectionTargets(  # type: ignore
             boxes=boxes_pred,
             classes=classes_pred,
             scores=torch.empty_like(classes_pred),
@@ -42,12 +41,12 @@ def test_mean_average_precision_add(
 ):
     mapping = {"background": 0, "apple": 1}
     inverse_mapping = {v: k for k, v in mapping.items()}
-    map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
-    map_metric.add(
-        *infer_on_batch(
-            batch,
-            priors=sample_anchors,
-            inverse_mapping=inverse_mapping,
-        )
+    infer_on_batch = build_inference_on_batch(
+        inverse_mapping=inverse_mapping,
+        priors=sample_anchors,
+        confidence_threshold=0.01,
+        nms_threshold=2.0,
     )
+    map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
+    map_metric.add(*infer_on_batch(batch))
     assert map_metric.value()["mAP"] == pytest.approx(0.5)

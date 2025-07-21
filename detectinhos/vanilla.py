@@ -1,16 +1,12 @@
 from dataclasses import dataclass
 from functools import partial
-from operator import itemgetter
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
 import torch
-from toolz.functoolz import compose
-from torch.nn.utils.rnn import pad_sequence
-from torchvision.ops import nms
 
-from detectinhos.batch import Batch, apply_eval
 from detectinhos.encode import decode as decode_boxes, encode
+from detectinhos.inference import generic_infer_on_batch, generic_infer_on_rgb
 from detectinhos.loss import decode
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import (
@@ -32,63 +28,6 @@ class DetectionTargets(Generic[T]):
     scores: T  # [B, N]
     boxes: T
     classes: T
-
-
-P = TypeVar(
-    "P",
-    np.ndarray,
-    torch.Tensor,
-)
-
-
-def pad(sequence):
-    return pad_sequence(
-        sequence,
-        batch_first=True,
-        padding_value=float("nan"),
-    )  # [B, N, 4]
-
-
-@dataclass
-class DetectionPredictions(DetectionTargets[P]):
-    def decode(
-        self,
-        anchors: torch.Tensor,
-        variances: tuple[float, float] = (0.1, 0.2),
-        nms_threshold: float = 0.4,
-        confidence_threshold: float = 0.5,
-    ) -> DetectionTargets[torch.Tensor]:
-        boxes_list = []
-        classes_list = []
-        scores_list = []
-
-        B = self.boxes.shape[0]
-
-        for b in range(B):
-            logits = self.classes[b]  # [A, C]
-            confidence = torch.nn.functional.softmax(logits, dim=-1)
-            scores, labels = confidence[..., 1:].max(dim=-1)  # drop bg class
-            labels += 1  # shift to match class IDs
-
-            decoded_boxes = decode_boxes(self.boxes[b], anchors, variances)
-
-            mask = scores > confidence_threshold
-            boxes_b = decoded_boxes[mask]
-            labels_b = labels[mask]
-            scores_b = scores[mask]
-
-            # Apply class-agnostic NMS
-            keep = nms(boxes_b, scores_b, nms_threshold)
-
-            boxes_list.append(boxes_b[keep])
-            classes_list.append(labels_b[keep].float())
-            scores_list.append(scores_b[keep])
-
-        return DetectionTargets(
-            boxes=pad(boxes_list),  # [B, N, 4]
-            classes=pad(classes_list),  # [B, N]
-            scores=pad(scores_list),  # [B, N]
-        )
 
 
 def to_numpy(
@@ -196,61 +135,44 @@ decode_vanilla = partial(
 )
 
 
-def infer_on_rgb(
-    image: np.ndarray,
+def build_inference_on_rgb(
     model: torch.nn.Module,
-    inverse_mapping: dict[int, str],
-    file: str = "",
-):
-    def to_batch(image, file="fake.png") -> Batch:
-        return Batch(
-            files=[file],
-            image=torch.from_numpy(image)
-            .permute(2, 0, 1)
-            .float()
-            .unsqueeze(0),
-        )
-
-    # On RGB
-    sample = compose(
-        compose(
-            partial(to_sample, inverse_mapping=inverse_mapping),
-            itemgetter(0),
-            to_numpy,
-            partial(decode_vanilla, priors=model.priors),
-        ),
-        partial(apply_eval, model=model),
-        to_batch,
-    )(image)
-    sample.file_name = file
-    return sample
-
-
-def infer_on_batch(
-    batch: Batch,
     priors: torch.Tensor,
     inverse_mapping: dict[int, str],
-) -> tuple[
-    list[Sample[Annotation]],
-    list[Sample[Annotation]],
-]:
-    if batch.pred is None:
-        raise IOError("First must run the inference")
+    confidence_threshold=0.5,
+    nms_threshold=0.4,
+):
+    return partial(
+        generic_infer_on_rgb,
+        model=model,
+        priors=priors,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
+        to_numpy=to_numpy,
+        decode=partial(
+            decode_vanilla,
+            confidence_threshold=confidence_threshold,
+            nms_threshold=nms_threshold,
+        ),
+    )
 
-    return (
-        [
-            to_sample(a, inverse_mapping=inverse_mapping)
-            for a in to_numpy(batch.true)  # type: ignore
-        ],
-        [
-            to_sample(a, inverse_mapping=inverse_mapping)
-            for a in to_numpy(
-                decode_vanilla(  # type: ignore
-                    batch.pred,
-                    priors=priors,
-                    confidence_threshold=0.01,
-                    nms_threshold=2.0,
-                )
-            )
-        ],
+
+def build_inference_on_batch(
+    priors: torch.Tensor,
+    inverse_mapping: dict[int, str],
+    confidence_threshold=0.5,
+    nms_threshold=0.4,
+):
+    return partial(
+        generic_infer_on_batch,
+        priors=priors,
+        to_numpy=to_numpy,
+        to_sample=partial(to_sample, inverse_mapping=inverse_mapping),
+        decode=partial(
+            decode_vanilla,
+            confidence_threshold=confidence_threshold,
+            nms_threshold=nms_threshold,
+        ),
     )
