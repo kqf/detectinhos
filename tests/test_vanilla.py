@@ -1,5 +1,6 @@
 from functools import partial
 
+import numpy as np
 import torch
 
 from detectinhos.anchors import anchors
@@ -10,6 +11,7 @@ from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     VANILLA_TASK,
     DetectionTargets,
+    build_inference_on_rgb,
     to_targets,
 )
 
@@ -68,3 +70,13 @@ def test_vanilla(annotations, resolution=(480, 640)):
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
         assert "loss" in losses
+
+    # Now check the inference after training
+    infer_on_rgb = build_inference_on_rgb(
+        model,
+        priors=model.anchors,
+        inverse_mapping={0: "background", 1: "apple"},
+    )
+
+    sample = infer_on_rgb(np.random.randint(0, 255, resolution + (3,)))
+    assert len(sample.annotations) > 0
