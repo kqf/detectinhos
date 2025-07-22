@@ -19,28 +19,42 @@ from detectinhos.vanilla import (
 
 
 class DedetectionModel(torch.nn.Module):
-    def __init__(self, anchors: torch.Tensor, n_clases: int):
+    anchors: torch.Tensor
+
+    def __init__(
+        self,
+        anchors: torch.Tensor,
+        n_clases: int,
+        classes: torch.Tensor,
+        boxes: torch.Tensor,
+    ) -> None:
         super().__init__()
         self.register_buffer("anchors", anchors)
         self.anchors: torch.Tensor = anchors
         self.n_clases = n_clases
+        self.classes = classes
+        self.boxes = boxes
 
     def forward(self, images: torch.Tensor) -> DetectionTargets:
-        batch = images.shape[0]
-        num_anchors = self.anchors.shape[0]
-        classes = torch.rand((batch, num_anchors, self.n_clases))
         return DetectionTargets(
             # Return the same tensor twice, one for scores another for labels
-            scores=classes,
-            classes=classes,
-            boxes=torch.rand((batch, num_anchors, 4)),
+            scores=self.classes,
+            classes=self.classes,
+            boxes=self.boxes,
         )
 
 
 @pytest.fixture
-def build_model() -> Callable[[torch.Tensor, int], DedetectionModel]:
+def build_model(
+    classes_pred, boxes_pred
+) -> Callable[[torch.Tensor, int], DedetectionModel]:
     def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
-        return DedetectionModel(anchors=anchors, n_clases=n_clases)
+        return DedetectionModel(
+            anchors=anchors,
+            n_clases=n_clases,
+            classes=classes_pred,
+            boxes=boxes_pred,
+        )
 
     return build_model
 
