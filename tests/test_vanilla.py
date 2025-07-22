@@ -46,27 +46,36 @@ class DedetectionModel(torch.nn.Module):
 
 @pytest.fixture
 def build_model(
-    classes_pred, boxes_pred
+    batch_size,
+    classes_pred,
+    boxes_pred,
 ) -> Callable[[torch.Tensor, int], DedetectionModel]:
     def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
         return DedetectionModel(
             anchors=anchors,
             n_clases=n_clases,
-            classes=classes_pred,
-            boxes=boxes_pred,
+            # Expand classes_pred to shape [batch_size, n_anchors, n_clases]
+            classes=classes_pred.expand(batch_size, -1, -1).clone(),
+            boxes=boxes_pred.expand(batch_size, -1, 4).clone(),
         )
 
     return build_model
 
 
 # TODO: Do we need other tests at all?
-def test_vanilla(annotations, build_model, resolution=(480, 640)):
+@pytest.mark.parametrize(
+    "batch_size",
+    [
+        4,
+    ],
+)
+def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
             labels=read_dataset(annotations, Sample[Annotation]) * 8,
             to_targets=partial(to_targets, mapping={"person": 1}),
         ),
-        batch_size=4,
+        batch_size=batch_size,
         num_workers=1,
         collate_fn=partial(
             detection_collate,
