@@ -1,6 +1,8 @@
 from functools import partial
+from typing import Callable
 
 import numpy as np
+import pytest
 import torch
 
 from detectinhos.anchors import anchors
@@ -35,8 +37,16 @@ class DedetectionModel(torch.nn.Module):
         )
 
 
+@pytest.fixture
+def build_model() -> Callable[[torch.Tensor, int], DedetectionModel]:
+    def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
+        return DedetectionModel(anchors=anchors, n_clases=n_clases)
+
+    return build_model
+
+
 # TODO: Do we need other tests at all?
-def test_vanilla(annotations, resolution=(480, 640)):
+def test_vanilla(annotations, build_model, resolution=(480, 640)):
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
             labels=read_dataset(annotations, Sample[Annotation]) * 8,
@@ -50,7 +60,7 @@ def test_vanilla(annotations, resolution=(480, 640)):
         ),
     )
 
-    model = DedetectionModel(
+    model = build_model(
         anchors=anchors(
             min_sizes=[[16, 32], [64, 128], [256, 512]],
             steps=[8, 16, 32],
