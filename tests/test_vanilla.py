@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Callable
 
 import numpy as np
 import pytest
@@ -37,9 +38,10 @@ class DedetectionModel(torch.nn.Module):
 
 
 @pytest.fixture
-def build_model() -> DedetectionModel:
+def build_model() -> Callable[[torch.Tensor, int], DedetectionModel]:
     def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
         return DedetectionModel(anchors=anchors, n_clases=n_clases)
+
     return build_model
 
 
