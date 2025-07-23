@@ -18,6 +18,10 @@ from detectinhos.vanilla import (
 )
 
 
+def approx(x):
+    return pytest.approx(x, abs=0.001)
+
+
 class DedetectionModel(torch.nn.Module):
     anchors: torch.Tensor
 
@@ -113,5 +117,9 @@ def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
         inverse_mapping={0: "background", 1: "apple"},
     )
 
+    # Now check the inference works
     sample = infer_on_rgb(np.random.randint(0, 255, resolution + (3,)))
-    assert len(sample.annotations) > 0
+    assert len(sample.annotations) == 1
+    assert sample.annotations[0].label == "apple"
+    assert sample.annotations[0].score == approx(0.62)
+    assert sample.annotations[0].bbox == approx([413.0, 390.0, 515.0, 459.0])
