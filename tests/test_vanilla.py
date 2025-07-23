@@ -36,17 +36,20 @@ class DedetectionModel(torch.nn.Module):
         self.boxes = boxes
 
     def forward(self, images: torch.Tensor) -> DetectionTargets:
+        # Expand classes_pred to shape [batch_size, n_anchors, n_clases]
+        batch_size = images.shape[0]
+        boxes = self.boxes.expand(batch_size, -1, 4).clone()
+        classes = self.classes.expand(batch_size, -1, -1).clone()
         return DetectionTargets(
             # Return the same tensor twice, one for scores another for labels
-            scores=self.classes,
-            classes=self.classes,
-            boxes=self.boxes,
+            scores=classes,
+            classes=classes,
+            boxes=boxes,
         )
 
 
 @pytest.fixture
 def build_model(
-    batch_size,
     classes_pred,
     boxes_pred,
 ) -> Callable[[torch.Tensor, int], DedetectionModel]:
@@ -54,9 +57,8 @@ def build_model(
         return DedetectionModel(
             anchors=anchors,
             n_clases=n_clases,
-            # Expand classes_pred to shape [batch_size, n_anchors, n_clases]
-            classes=classes_pred.expand(batch_size, -1, -1).clone(),
-            boxes=boxes_pred.expand(batch_size, -1, 4).clone(),
+            classes=classes_pred,
+            boxes=boxes_pred,
         )
 
     return build_model
