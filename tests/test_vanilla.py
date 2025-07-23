@@ -50,7 +50,6 @@ class DedetectionModel(torch.nn.Module):
 
 @pytest.fixture
 def build_model(
-    batch_size,
     classes_pred,
     boxes_pred,
 ) -> Callable[[torch.Tensor, int], DedetectionModel]:
