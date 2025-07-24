@@ -42,8 +42,8 @@ def to_numpy(
         result.append(
             DetectionTargets(
                 boxes=boxes[valid].cpu().numpy(),
-                classes=classes[valid].cpu().numpy(),
-                scores=scores[valid].cpu().numpy(),
+                classes=classes[valid].cpu().numpy().reshape(-1),
+                scores=scores[valid].cpu().numpy().reshape(-1),
             )
         )
     return result
