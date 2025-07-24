@@ -9,10 +9,12 @@ from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
 from detectinhos.loss import DetectionLoss
+from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     VANILLA_TASK,
     DetectionTargets,
+    build_inference_on_batch,
     build_inference_on_rgb,
     to_targets,
 )
@@ -76,10 +78,13 @@ def build_model(
     ],
 )
 def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
+    mapping = {"background": 0, "apple": 1}
+    inverse_mapping = {v: k for k, v in mapping.items()}
+
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
             labels=read_dataset(annotations, Sample[Annotation]) * 8,
-            to_targets=partial(to_targets, mapping={"person": 1}),
+            to_targets=partial(to_targets, mapping=mapping),
         ),
         batch_size=batch_size,
         num_workers=1,
@@ -103,18 +108,29 @@ def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
         sublosses=VANILLA_TASK,
     )
 
+    infer_on_batch = build_inference_on_batch(
+        inverse_mapping=inverse_mapping,
+        priors=model.anchors,
+        confidence_threshold=0.01,
+        nms_threshold=2.0,
+    )
+
+    map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
         batch.pred = model(batch.image)
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
+        map_metric.add(*infer_on_batch(batch))
         assert "loss" in losses
+
+    print(map_metric.value()["mAP"])
 
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
         model,
         priors=model.anchors,
-        inverse_mapping={0: "background", 1: "apple"},
+        inverse_mapping=inverse_mapping,
     )
 
     # Now check the inference works
