@@ -34,7 +34,7 @@ def batch(
     )
 
 
-# @pytest.mark.xfail
+@pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
     sample_anchors: torch.Tensor,
