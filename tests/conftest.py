@@ -85,7 +85,11 @@ def pred():
 
 @pytest.fixture
 def boxes_true(true) -> torch.Tensor:
-    return torch.Tensor(true[:, :4]).unsqueeze(0)
+    width, height = 640, 480
+    boxes = true[:, :4].copy().astype(np.float32)
+    boxes[:, [0, 2]] /= float(width)  # x-coords
+    boxes[:, [1, 3]] /= float(height)  # y-coords
+    return torch.Tensor(boxes).unsqueeze(0)
 
 
 @pytest.fixture
@@ -97,6 +101,9 @@ def classes_true(true) -> torch.Tensor:
 def boxes_pred(pred, sample_anchors) -> torch.Tensor:
     total = torch.zeros((sample_anchors.shape[0], 4), dtype=torch.float32)
     total[: pred.shape[0]] = torch.Tensor(pred[:, :4])
+    width, height = 640, 480
+    total[:, [0, 2]] /= float(width)  # x-coords
+    total[:, [1, 3]] /= float(height)  # y-coords
     return encode(
         total,
         sample_anchors,
