@@ -77,7 +77,12 @@ def build_model(
         4,
     ],
 )
-def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
+def test_vanilla(
+    batch_size,
+    annotations,
+    build_model,
+    resolution=(480, 640),
+):
     mapping = {"background": 0, "apple": 1}
     inverse_mapping = {v: k for k, v in mapping.items()}
 
@@ -124,7 +129,7 @@ def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
         map_metric.add(*infer_on_batch(batch))
         assert "loss" in losses
 
-    print(map_metric.value()["mAP"])
+    print(">>>>>>", map_metric.value()["mAP"])
 
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
@@ -138,4 +143,4 @@ def test_vanilla(batch_size, annotations, build_model, resolution=(480, 640)):
     assert len(sample.annotations) == 1
     assert sample.annotations[0].label == "apple"
     assert sample.annotations[0].score == approx(0.62)
-    assert sample.annotations[0].bbox == approx([413.0, 390.0, 515.0, 459.0])
+    assert sample.annotations[0].bbox == approx([0.645, 0.813, 0.805, 0.956])
