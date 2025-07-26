@@ -11,37 +11,64 @@ from detectinhos.encode import encode
 
 
 @pytest.fixture
-def annotations(tmp_path) -> pathlib.Path:
-    image = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+def true():
+    # [xmin, ymin, xmax, ymax, class_id, difficult, crowd] ~
+    # Convert to relative coordinates (default resolution is 640x480)
+    width, height = 640, 480
+    data = np.array(
+        [
+            [439, 157, 556, 241, 0, 0, 0],
+            [437, 246, 518, 351, 0, 0, 0],
+            [515, 306, 595, 375, 0, 0, 0],
+            [407, 386, 531, 476, 0, 0, 0],
+            [544, 419, 621, 476, 0, 0, 0],
+            [609, 297, 636, 392, 0, 0, 0],
+        ],
+        dtype=np.float32,
+    )
+    data[:, [0, 2]] /= width  # x-coordinates
+    data[:, [1, 3]] /= height  # y-coordinates
+    return data
+
+
+@pytest.fixture
+def pred():
+    # [xmin, ymin, xmax, ymax, class_id, confidence] ~
+    # Convert to relative coordinates (default resolution is 640x480)
+    width, height = 640, 480
+    data = np.array(
+        [
+            [429, 219, 528, 247, 0, 0.460851],
+            [433, 260, 506, 336, 0, 0.269833],
+            [518, 314, 603, 369, 0, 0.462608],
+            [592, 310, 634, 388, 0, 0.298196],
+            [403, 384, 517, 461, 0, 0.382881],
+            [405, 429, 519, 470, 0, 0.369369],
+            [433, 272, 499, 341, 0, 0.272826],
+            [413, 390, 515, 459, 0, 0.619459],
+        ],
+        dtype=np.float32,
+    )
+    data[:, [0, 2]] /= width  # x-coordinates
+    data[:, [1, 3]] /= height  # y-coordinates
+    return data
+
+
+@pytest.fixture
+def annotations(tmp_path, image, true) -> pathlib.Path:
     fname = str(tmp_path / "image.png")
     cv2.imwrite(fname, image)
-    h, w, _ = image.shape
+
+    # Use true labels to populate the annotations
     example = [
         {
             "file_name": fname,
             "annotations": [
                 {
-                    "label": "person",
-                    "bbox": [229 / w, 130 / h, 371 / w, 400 / h],
-                    "landmarks": [
-                        [488.906 / w, 373.643 / h],
-                        [542.089 / w, 376.442 / h],
-                        [515.031 / w, 412.83 / h],
-                        [485.174 / w, 425.893 / h],
-                        [538.357 / w, 431.491 / h],
-                    ],
-                },
-                {
-                    "label": "person",
-                    "bbox": [0.14, 0.5, 0.35, 1.0],
-                    "landmarks": [
-                        [488.906 / w, 373.643 / h],
-                        [542.089 / w, 376.442 / h],
-                        [515.031 / w, 412.83 / h],
-                        [485.174 / w, 425.893 / h],
-                        [538.357 / w, 431.491 / h],
-                    ],
-                },
+                    "label": "apple",
+                    "bbox": true[i][:4].tolist(),
+                }
+                for i in range(true.shape[0])
             ],
         },
     ]
@@ -52,44 +79,8 @@ def annotations(tmp_path) -> pathlib.Path:
 
 
 @pytest.fixture
-def true():
-    # [xmin, ymin, xmax, ymax, class_id, difficult, crowd] ~
-    return np.array(
-        [
-            [439, 157, 556, 241, 0, 0, 0],
-            [437, 246, 518, 351, 0, 0, 0],
-            [515, 306, 595, 375, 0, 0, 0],
-            [407, 386, 531, 476, 0, 0, 0],
-            [544, 419, 621, 476, 0, 0, 0],
-            [609, 297, 636, 392, 0, 0, 0],
-        ]
-    )
-
-
-@pytest.fixture
-def pred():
-    # [xmin, ymin, xmax, ymax, class_id, confidence] ~
-    return np.array(
-        [
-            [429, 219, 528, 247, 0, 0.460851],
-            [433, 260, 506, 336, 0, 0.269833],
-            [518, 314, 603, 369, 0, 0.462608],
-            [592, 310, 634, 388, 0, 0.298196],
-            [403, 384, 517, 461, 0, 0.382881],
-            [405, 429, 519, 470, 0, 0.369369],
-            [433, 272, 499, 341, 0, 0.272826],
-            [413, 390, 515, 459, 0, 0.619459],
-        ]
-    )
-
-
-@pytest.fixture
 def boxes_true(true) -> torch.Tensor:
-    width, height = 640, 480
-    boxes = true[:, :4].copy().astype(np.float32)
-    boxes[:, [0, 2]] /= float(width)  # x-coords
-    boxes[:, [1, 3]] /= float(height)  # y-coords
-    return torch.Tensor(boxes).unsqueeze(0)
+    return torch.Tensor(true[:, :4]).unsqueeze(0)
 
 
 @pytest.fixture
@@ -101,9 +92,6 @@ def classes_true(true) -> torch.Tensor:
 def boxes_pred(pred, sample_anchors) -> torch.Tensor:
     total = torch.zeros((sample_anchors.shape[0], 4), dtype=torch.float32)
     total[: pred.shape[0]] = torch.Tensor(pred[:, :4])
-    width, height = 640, 480
-    total[:, [0, 2]] /= float(width)  # x-coords
-    total[:, [1, 3]] /= float(height)  # y-coords
     return encode(
         total,
         sample_anchors,
