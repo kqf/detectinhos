@@ -6,6 +6,11 @@ from mean_average_precision import MetricBuilder
 from detectinhos.sample import Annotation, Sample
 
 
+# TODO: For some reason this is imortant, fix me
+def to_bbox(bbox):
+    return bbox[0] * 640, bbox[1] * 480, bbox[2] * 640, bbox[3] * 480
+
+
 def to_table(
     true: List[Sample[Annotation]],
     pred: List[Sample[Annotation]],
@@ -17,7 +22,7 @@ def to_table(
         # Format predictions
         pred_arr = np.array(
             [
-                list(ann.bbox) + [mapping[ann.label] - 1, ann.score]
+                list(to_bbox(ann.bbox)) + [mapping[ann.label] - 1, ann.score]
                 for ann in spred.annotations
             ],
             dtype=np.float32,
@@ -26,7 +31,7 @@ def to_table(
         # Format ground truth
         true_arr = np.zeros((len(strue.annotations), 7), dtype=np.float32)
         for i, ann in enumerate(strue.annotations):
-            true_arr[i, :4] = ann.bbox
+            true_arr[i, :4] = to_bbox(ann.bbox)
             # shift to zero-indexed class
             true_arr[i, 4] = mapping[ann.label] - 1
 

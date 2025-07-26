@@ -24,17 +24,17 @@ def batch(
         true=DetectionTargets(  # type: ignore
             boxes=boxes_true,
             classes=classes_true,
-            scores=torch.empty_like(classes_true),
+            scores=classes_true,
         ),
         pred=DetectionTargets(  # type: ignore
             boxes=boxes_pred,
             classes=classes_pred,
-            scores=torch.empty_like(classes_pred),
+            scores=classes_pred,
         ),
     )
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_mean_average_precision_add(
     batch: Batch,
     sample_anchors: torch.Tensor,
