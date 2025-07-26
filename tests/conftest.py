@@ -65,7 +65,7 @@ def annotations(tmp_path, image, true) -> pathlib.Path:
             "file_name": fname,
             "annotations": [
                 {
-                    "label": "person",
+                    "label": "apple",
                     "bbox": true[i][:4].tolist(),
                 }
                 for i in range(true.shape[0])
