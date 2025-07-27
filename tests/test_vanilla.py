@@ -129,7 +129,7 @@ def test_vanilla(
         map_metric.add(*infer_on_batch(batch))
         assert "loss" in losses
 
-    print(">>>>>>", map_metric.value()["mAP"])
+    assert map_metric.value()["mAP"] == pytest.approx(0.5)
 
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
