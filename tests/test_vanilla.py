@@ -53,10 +53,9 @@ class DedetectionModel(torch.nn.Module):
 def build_model(
     classes_pred,
     boxes_pred,
-) -> Callable[[torch.Tensor, int], DedetectionModel]:
-    def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
+) -> Callable[[int], DedetectionModel]:
+    def build_model(n_clases: int) -> DedetectionModel:
         return DedetectionModel(
-            anchors=anchors,
             n_clases=n_clases,
             classes=classes_pred,
             boxes=boxes_pred,
