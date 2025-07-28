@@ -70,7 +70,6 @@ def build_model(
     return build_model
 
 
-# TODO: Do we need other tests at all?
 @pytest.mark.parametrize(
     "batch_size",
     [
@@ -127,8 +126,10 @@ def test_vanilla(
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
         map_metric.add(*infer_on_batch(batch))
+        # Test 1: Check forward pass and loss
         assert "loss" in losses
 
+    # Test 2: Check mAP metric is calculated correctly
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
 
     # Now check the inference after training
@@ -138,7 +139,7 @@ def test_vanilla(
         inverse_mapping=inverse_mapping,
     )
 
-    # Now check the inference works
+    # Test 3: Now check the inference works
     sample = infer_on_rgb(np.random.randint(0, 255, resolution + (3,)))
     assert len(sample.annotations) == 1
     assert sample.annotations[0].label == "apple"
