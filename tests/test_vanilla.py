@@ -25,18 +25,13 @@ def approx(x):
 
 
 class DedetectionModel(torch.nn.Module):
-    anchors: torch.Tensor
-
     def __init__(
         self,
-        anchors: torch.Tensor,
         n_clases: int,
         classes: torch.Tensor,
         boxes: torch.Tensor,
     ) -> None:
         super().__init__()
-        self.register_buffer("anchors", anchors)
-        self.anchors: torch.Tensor = anchors
         self.n_clases = n_clases
         self.classes = classes
         self.boxes = boxes
@@ -58,10 +53,9 @@ class DedetectionModel(torch.nn.Module):
 def build_model(
     classes_pred,
     boxes_pred,
-) -> Callable[[torch.Tensor, int], DedetectionModel]:
-    def build_model(anchors: torch.Tensor, n_clases: int) -> DedetectionModel:
+) -> Callable[[int], DedetectionModel]:
+    def build_model(n_clases: int) -> DedetectionModel:
         return DedetectionModel(
-            anchors=anchors,
             n_clases=n_clases,
             classes=classes_pred,
             boxes=boxes_pred,
@@ -97,24 +91,24 @@ def test_vanilla(
             to_targets=DetectionTargets,
         ),
     )
+    priors = anchors(
+        min_sizes=[[16, 32], [64, 128], [256, 512]],
+        steps=[8, 16, 32],
+        clip=False,
+        resolution=resolution,
+    )
 
     model = build_model(
-        anchors=anchors(
-            min_sizes=[[16, 32], [64, 128], [256, 512]],
-            steps=[8, 16, 32],
-            clip=False,
-            resolution=resolution,
-        ),
         n_clases=2,
     )
     loss = DetectionLoss(
-        priors=model.anchors,
+        priors=priors,
         sublosses=VANILLA_TASK,
     )
 
     infer_on_batch = build_inference_on_batch(
         inverse_mapping=inverse_mapping,
-        priors=model.anchors,
+        priors=priors,
         confidence_threshold=0.01,
         nms_threshold=2.0,
     )
@@ -135,7 +129,7 @@ def test_vanilla(
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
         model,
-        priors=model.anchors,
+        priors=priors,
         inverse_mapping=inverse_mapping,
     )
 
