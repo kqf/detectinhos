@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 import torch
 
-from detectinhos.anchors import anchors
 from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
 from detectinhos.loss import DetectionLoss
@@ -74,6 +73,7 @@ def test_vanilla(
     batch_size,
     annotations,
     build_model,
+    sample_anchors,
     resolution=(480, 640),
 ):
     mapping = {"background": 0, "apple": 1}
@@ -91,12 +91,7 @@ def test_vanilla(
             to_targets=DetectionTargets,
         ),
     )
-    priors = anchors(
-        min_sizes=[[16, 32], [64, 128], [256, 512]],
-        steps=[8, 16, 32],
-        clip=False,
-        resolution=resolution,
-    )
+    priors = sample_anchors
 
     model = build_model(
         n_clases=2,
