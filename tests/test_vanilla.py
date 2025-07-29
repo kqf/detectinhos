@@ -69,12 +69,18 @@ def build_model(
         4,
     ],
 )
+@pytest.mark.parametrize(
+    "resolution",
+    [
+        (480, 640),
+    ],
+)
 def test_vanilla(
     batch_size,
     annotations,
     build_model,
     sample_anchors,
-    resolution=(480, 640),
+    resolution,
 ):
     mapping = {"background": 0, "apple": 1}
     inverse_mapping = {v: k for k, v in mapping.items()}
