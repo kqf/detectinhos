@@ -91,19 +91,18 @@ def test_vanilla(
             to_targets=DetectionTargets,
         ),
     )
-    priors = sample_anchors
 
     model = build_model(
         n_clases=2,
     )
     loss = DetectionLoss(
-        priors=priors,
+        priors=sample_anchors,
         sublosses=VANILLA_TASK,
     )
 
     infer_on_batch = build_inference_on_batch(
         inverse_mapping=inverse_mapping,
-        priors=priors,
+        priors=sample_anchors,
         confidence_threshold=0.01,
         nms_threshold=2.0,
     )
@@ -124,7 +123,7 @@ def test_vanilla(
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
         model,
-        priors=priors,
+        priors=sample_anchors,
         inverse_mapping=inverse_mapping,
     )
 
