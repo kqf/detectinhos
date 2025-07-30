@@ -31,11 +31,9 @@ class DetectionTargets(Generic[T]):
 
 
 def to_numpy(
-    x: Optional[DetectionTargets[torch.Tensor]],
+    x: DetectionTargets[torch.Tensor],
 ) -> list[DetectionTargets[np.ndarray]]:
     result: list[DetectionTargets[np.ndarray]] = []
-    if x is None:
-        return result
     for boxes, classes, scores in zip(x.boxes, x.classes, x.scores):
         valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
         result.append(
