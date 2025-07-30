@@ -97,7 +97,7 @@ def to_targets(
     )
 
 
-VANILLA_TASK = DetectionTargets(
+TASK = DetectionTargets(
     scores=WeightedLoss(
         loss=None,
         # NB: drop the background class
@@ -130,7 +130,7 @@ VANILLA_TASK = DetectionTargets(
 
 decode_vanilla = partial(
     decode,
-    sublosses=VANILLA_TASK,
+    sublosses=TASK,
 )
 
 

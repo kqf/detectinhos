@@ -11,7 +11,7 @@ from detectinhos.loss import DetectionLoss
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
-    VANILLA_TASK,
+    TASK,
     DetectionTargets,
     build_inference_on_batch,
     build_inference_on_rgb,
@@ -103,7 +103,7 @@ def test_vanilla(
     )
     loss = DetectionLoss(
         priors=sample_anchors,
-        sublosses=VANILLA_TASK,
+        sublosses=TASK,
     )
 
     infer_on_batch = build_inference_on_batch(
