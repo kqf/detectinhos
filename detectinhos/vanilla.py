@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 import numpy as np
 import torch
@@ -47,18 +47,14 @@ def to_numpy(
 
 
 def to_sample(
-    predicted: Optional[DetectionTargets[np.ndarray]],
+    predicted: DetectionTargets[np.ndarray],
     inverse_mapping: dict[int, str],
     file_name: str = "",
 ) -> Sample:
-    predictions = (
-        zip(
-            predicted.boxes.tolist(),
-            predicted.classes.tolist(),
-            predicted.scores.tolist(),
-        )
-        if predicted
-        else []
+    predictions = zip(
+        predicted.boxes.tolist(),
+        predicted.classes.tolist(),
+        predicted.scores.tolist(),
     )
     return Sample(
         file_name=file_name,
