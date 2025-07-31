@@ -55,7 +55,7 @@ def to_sample(
         zip(
             predicted.boxes.tolist(),
             predicted.classes.tolist(),
-            predicted.scores.tolist() if predicted.scores is not None else [],
+            predicted.scores.tolist(),
         )
         if predicted
         else []
