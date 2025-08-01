@@ -123,3 +123,20 @@ def generic_infer_on_batch(
             )
         ],
     )
+
+
+def true2sample(
+    true: HasBoxesAndClasses,
+    to_sample,
+    to_numpy,
+) -> list[Sample[Annotation]]:
+    return list(map(to_sample, to_numpy(true)))
+
+
+def pred2sample(
+    pred: HasBoxesAndClasses,
+    priors: torch.Tensor,
+    decode,
+    true2sample,
+) -> list[Sample[Annotation]]:
+    return true2sample(decode(pred, priors=priors))
