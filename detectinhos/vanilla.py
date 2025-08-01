@@ -6,8 +6,11 @@ import numpy as np
 import torch
 
 from detectinhos.encode import decode as decode_boxes, encode
-from detectinhos.inference import generic_infer_on_batch, generic_infer_on_rgb
-from detectinhos.loss import decode
+from detectinhos.inference import (
+    decode,
+    generic_infer_on_batch,
+    generic_infer_on_rgb,
+)
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import (
     WeightedLoss,
