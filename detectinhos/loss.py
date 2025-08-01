@@ -4,8 +4,6 @@ from typing import Callable, Generic, Protocol, Tuple, TypeVar
 
 import torch
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence
-from torchvision.ops import nms
 
 from detectinhos.matching import match
 from detectinhos.sublosses import WeightedLoss
@@ -111,43 +109,3 @@ class DetectionLoss(Generic[LossContainer], nn.Module):
 
         losses["loss"] = torch.stack(tuple(losses.values())).sum()
         return losses
-
-
-def pad(sequence):
-    return pad_sequence(
-        sequence,
-        batch_first=True,
-        padding_value=float("nan"),
-    )  # [B, N, 4]
-
-
-def decode(
-    pred: HasBoxesAndClasses[torch.Tensor],
-    sublosses: HasBoxesAndClasses[WeightedLoss],
-    priors: torch.Tensor,
-    nms_threshold: float = 0.4,
-    confidence_threshold: float = 0.5,
-) -> HasBoxesAndClasses[torch.Tensor]:
-    n_batches = pred.boxes.shape[0]
-    decoded_fields: dict[str, list[torch.Tensor]] = {
-        f.name: [] for f in fields(sublosses)
-    }
-
-    for b in range(n_batches):
-        # Decode boxes and scores
-        boxes = sublosses.boxes.dec_pred(pred.boxes[b], priors)
-        scores = sublosses.scores.dec_pred(pred.scores[b], priors)
-
-        mask = scores > confidence_threshold
-        keep = nms(boxes[mask], scores[mask], iou_threshold=nms_threshold)
-
-        for field in fields(sublosses):
-            name = field.name
-            subloss = getattr(sublosses, name)
-            raw = getattr(pred, name)[b]
-            decoded = subloss.dec_pred(raw, priors)
-            filtered = decoded[mask][keep]
-            decoded_fields[name].append(filtered)
-
-    output_cls = type(pred)
-    return output_cls(**{k: pad(v) for k, v in decoded_fields.items()})
