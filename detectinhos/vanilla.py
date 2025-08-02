@@ -8,7 +8,6 @@ import torch
 from detectinhos.encode import decode as decode_boxes, encode
 from detectinhos.inference import (
     decode,
-    generic_infer_on_batch,
     generic_infer_on_rgb,
 )
 from detectinhos.sample import Annotation, Sample
@@ -133,42 +132,16 @@ decode_vanilla = partial(
 
 def build_inference_on_rgb(
     model: torch.nn.Module,
-    priors: torch.Tensor,
     inverse_mapping: dict[int, str],
-    confidence_threshold=0.5,
-    nms_threshold=0.4,
+    decode,
 ):
     return partial(
         generic_infer_on_rgb,
         model=model,
-        priors=priors,
         to_sample=partial(
             to_sample,
             inverse_mapping=inverse_mapping,
         ),
         to_numpy=to_numpy,
-        decode=partial(
-            decode_vanilla,
-            confidence_threshold=confidence_threshold,
-            nms_threshold=nms_threshold,
-        ),
-    )
-
-
-def build_inference_on_batch(
-    priors: torch.Tensor,
-    inverse_mapping: dict[int, str],
-    confidence_threshold=0.5,
-    nms_threshold=0.4,
-):
-    return partial(
-        generic_infer_on_batch,
-        priors=priors,
-        to_numpy=to_numpy,
-        to_sample=partial(to_sample, inverse_mapping=inverse_mapping),
-        decode=partial(
-            decode_vanilla,
-            confidence_threshold=confidence_threshold,
-            nms_threshold=nms_threshold,
-        ),
+        decode=decode,
     )

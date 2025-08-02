@@ -123,6 +123,23 @@ def test_training_loop(
         ),
     )
 
+    decode_image = partial(
+        decode_generic,
+        sublosses=TASK,
+        priors=sample_anchors,
+        confidence_threshold=0.5,
+        nms_threshold=0.4,
+    )
+
+    to_samples = partial(
+        true2sample,
+        to_numpy=to_numpy,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
+    )
+
     map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
@@ -141,8 +158,8 @@ def test_training_loop(
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
         model,
-        priors=sample_anchors,
         inverse_mapping=inverse_mapping,
+        decode=decode_image,
     )
 
     # Test 3: Now check the inference works
