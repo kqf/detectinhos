@@ -114,6 +114,15 @@ def test_training_loop(
         confidence_threshold=0.01,
         nms_threshold=2.0,
     )
+
+    decode_image = partial(
+        decode_generic,
+        sublosses=TASK,
+        priors=sample_anchors,
+        confidence_threshold=0.5,
+        nms_threshold=0.4,
+    )
+
     to_samples = partial(
         true2sample,
         to_numpy=to_numpy,
@@ -141,8 +150,8 @@ def test_training_loop(
     # Now check the inference after training
     infer_on_rgb = build_inference_on_rgb(
         model,
-        priors=sample_anchors,
         inverse_mapping=inverse_mapping,
+        decode=decode_image,
     )
 
     # Test 3: Now check the inference works

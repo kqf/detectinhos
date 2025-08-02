@@ -67,7 +67,6 @@ def decode(
 def generic_infer_on_rgb(
     image: np.ndarray,
     model: torch.nn.Module,
-    priors: torch.Tensor,
     to_sample,
     to_numpy,
     decode,
@@ -88,7 +87,7 @@ def generic_infer_on_rgb(
             to_sample,
             itemgetter(0),
             to_numpy,
-            partial(decode, priors=priors),
+            decode,
         ),
         partial(apply_eval, model=model),
         to_batch,
@@ -97,46 +96,9 @@ def generic_infer_on_rgb(
     return sample
 
 
-# TODO: Do we need this function at all?
-def generic_infer_on_batch(
-    batch: Batch,
-    priors: torch.Tensor,
-    to_numpy,
-    to_sample,
-    decode,
-) -> tuple[
-    list[Sample[Annotation]],
-    list[Sample[Annotation]],
-]:
-    if batch.pred is None:
-        raise IOError("First must run the inference")
-
-    return (
-        [to_sample(a) for a in to_numpy(batch.true)],
-        [
-            to_sample(a)
-            for a in to_numpy(
-                decode(
-                    batch.pred,
-                    priors=priors,
-                )
-            )
-        ],
-    )
-
-
 def true2sample(
     true: HasBoxesAndClasses,
     to_sample,
     to_numpy,
 ) -> list[Sample[Annotation]]:
     return list(map(to_sample, to_numpy(true)))
-
-
-def pred2sample(
-    pred: HasBoxesAndClasses,
-    priors: torch.Tensor,
-    decode,
-    true2sample,
-) -> list[Sample[Annotation]]:
-    return true2sample(decode(pred, priors=priors))
