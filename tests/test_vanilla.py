@@ -77,7 +77,7 @@ def build_model(
         (480, 640),
     ],
 )
-def test_vanilla(
+def test_training_loop(
     batch_size,
     annotations,
     build_model,
