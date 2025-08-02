@@ -7,14 +7,16 @@ import torch
 
 from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
+from detectinhos.inference import decode as decode_generic, true2sample
 from detectinhos.loss import DetectionLoss
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     TASK,
     DetectionTargets,
-    build_inference_on_batch,
     build_inference_on_rgb,
+    to_numpy,
+    to_sample,
     to_targets,
 )
 
@@ -105,12 +107,20 @@ def test_vanilla(
         priors=sample_anchors,
         sublosses=TASK,
     )
-
-    infer_on_batch = build_inference_on_batch(
-        inverse_mapping=inverse_mapping,
+    decode = partial(
+        decode_generic,
+        sublosses=TASK,
         priors=sample_anchors,
         confidence_threshold=0.01,
         nms_threshold=2.0,
+    )
+    to_samples = partial(
+        true2sample,
+        to_numpy=to_numpy,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
     )
 
     map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
@@ -119,7 +129,9 @@ def test_vanilla(
         batch.pred = model(batch.image)
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
-        map_metric.add(*infer_on_batch(batch))
+        map_metric.add(
+            true=to_samples(batch.true), pred=to_samples(decode(batch.pred))
+        )
         # Test 1: Check forward pass and loss
         assert "loss" in losses
 
