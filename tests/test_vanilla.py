@@ -114,6 +114,14 @@ def test_training_loop(
         confidence_threshold=0.01,
         nms_threshold=2.0,
     )
+    to_samples = partial(
+        true2sample,
+        to_numpy=to_numpy,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
+    )
 
     decode_image = partial(
         decode_generic,
