@@ -79,8 +79,8 @@ def un_batch(
             build(
                 **{
                     "boxes": boxes[valid].cpu().numpy(),
-                    "classes": classes[valid].cpu().numpy().reshape(-1),
-                    "scores": scores[valid].cpu().numpy().reshape(-1),
+                    "classes": classes[valid].cpu().numpy(),
+                    "scores": scores[valid].cpu().numpy(),
                 }
             )
         )
