@@ -111,8 +111,8 @@ def test_training_loop(
         decode_generic,
         sublosses=TASK,
         priors=sample_anchors,
-        confidence_threshold=0.01,
-        nms_threshold=2.0,
+        confidence_threshold=0.2,
+        nms_threshold=1.0,
     )
     to_samples = partial(
         true2sample,
