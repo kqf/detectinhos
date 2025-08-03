@@ -7,14 +7,17 @@ import torch
 
 from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
-from detectinhos.inference import decode as decode_generic, true2sample
+from detectinhos.inference import (
+    decode as decode_generic,
+    generic_infer_on_rgb,
+    true2sample,
+)
 from detectinhos.loss import DetectionLoss
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     TASK,
     DetectionTargets,
-    build_inference_on_rgb,
     to_sample,
     to_targets,
 )
@@ -153,14 +156,18 @@ def test_training_loop(
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
 
     # Now check the inference after training
-    infer_on_rgb = build_inference_on_rgb(
-        model,
-        inverse_mapping=inverse_mapping,
+    infer_on_rgb_vanilla = partial(
+        generic_infer_on_rgb,
+        model=model,
+        to_sample=partial(
+            to_sample,
+            inverse_mapping=inverse_mapping,
+        ),
         decode=decode_image,
     )
 
     # Test 3: Now check the inference works
-    sample = infer_on_rgb(np.random.randint(0, 255, resolution + (3,)))
+    sample = infer_on_rgb_vanilla(np.random.randint(0, 255, resolution + (3,)))
     assert len(sample.annotations) == 1
     assert sample.annotations[0].label == "apple"
     assert sample.annotations[0].score == approx(0.62)

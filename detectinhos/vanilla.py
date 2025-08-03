@@ -6,9 +6,6 @@ import numpy as np
 import torch
 
 from detectinhos.encode import decode as decode_boxes, encode
-from detectinhos.inference import (
-    generic_infer_on_rgb,
-)
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import (
     WeightedLoss,
@@ -105,19 +102,3 @@ TASK = DetectionTargets(
         needs_negatives=False,
     ),
 )
-
-
-def build_inference_on_rgb(
-    model: torch.nn.Module,
-    inverse_mapping: dict[int, str],
-    decode,
-):
-    return partial(
-        generic_infer_on_rgb,
-        model=model,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
-        decode=decode,
-    )
