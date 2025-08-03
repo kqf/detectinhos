@@ -138,7 +138,9 @@ def test_training_loop(
         to_sample=vanilla_sample,
     )
 
+    # TODO: Fix this: providing mapping and num classes -- is redundant
     map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
+
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
         batch.pred = model(batch.image)
