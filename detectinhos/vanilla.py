@@ -108,6 +108,6 @@ TASK = DetectionTargets(
 def build_targets(mapping: dict[int, str]):
     inverse_mapping = {v: k for k, v in mapping.items()}
     return (
-        partial(to_sample, mapping=mapping),
-        partial(to_targets, inverse_mapping=inverse_mapping),
+        partial(to_sample, inverse_mapping=inverse_mapping),
+        partial(to_targets, mapping=mapping),
     )
