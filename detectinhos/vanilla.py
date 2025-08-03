@@ -7,7 +7,6 @@ import torch
 
 from detectinhos.encode import decode as decode_boxes, encode
 from detectinhos.inference import (
-    decode,
     generic_infer_on_rgb,
 )
 from detectinhos.sample import Annotation, Sample
@@ -121,12 +120,6 @@ TASK = DetectionTargets(
         dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
         needs_negatives=False,
     ),
-)
-
-
-decode_vanilla = partial(
-    decode,
-    sublosses=TASK,
 )
 
 
