@@ -5,6 +5,7 @@ from typing import Generic, TypeVar
 import numpy as np
 import torch
 
+from detectinhos.batch import un_batch
 from detectinhos.encode import decode as decode_boxes, encode
 from detectinhos.inference import (
     generic_infer_on_rgb,
@@ -29,22 +30,6 @@ class DetectionTargets(Generic[T]):
     scores: T  # [B, N]
     boxes: T
     classes: T
-
-
-def to_numpy(
-    x: DetectionTargets[torch.Tensor],
-) -> list[DetectionTargets[np.ndarray]]:
-    result: list[DetectionTargets[np.ndarray]] = []
-    for boxes, classes, scores in zip(x.boxes, x.classes, x.scores):
-        valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
-        result.append(
-            DetectionTargets(
-                boxes=boxes[valid].cpu().numpy(),
-                classes=classes[valid].cpu().numpy().reshape(-1),
-                scores=scores[valid].cpu().numpy().reshape(-1),
-            )
-        )
-    return result
 
 
 def to_sample(
@@ -135,6 +120,6 @@ def build_inference_on_rgb(
             to_sample,
             inverse_mapping=inverse_mapping,
         ),
-        to_numpy=to_numpy,
+        to_numpy=un_batch,
         decode=decode,
     )
