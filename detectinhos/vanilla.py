@@ -39,8 +39,8 @@ def to_sample(
 ) -> Sample:
     predictions = zip(
         predicted.boxes.tolist(),
-        predicted.classes.tolist(),
-        predicted.scores.tolist(),
+        predicted.classes.reshape(-1).tolist(),
+        predicted.scores.reshape(-1).tolist(),
     )
     return Sample(
         file_name=file_name,
