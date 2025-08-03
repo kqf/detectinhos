@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import torch
 
-from detectinhos.batch import detection_collate
+from detectinhos.batch import detection_collate, un_batch
 from detectinhos.dataset import DetectionDataset
 from detectinhos.inference import decode as decode_generic, true2sample
 from detectinhos.loss import DetectionLoss
@@ -15,7 +15,6 @@ from detectinhos.vanilla import (
     TASK,
     DetectionTargets,
     build_inference_on_rgb,
-    to_numpy,
     to_sample,
     to_targets,
 )
@@ -116,7 +115,7 @@ def test_training_loop(
     )
     to_samples = partial(
         true2sample,
-        to_numpy=to_numpy,
+        to_numpy=un_batch,
         to_sample=partial(
             to_sample,
             inverse_mapping=inverse_mapping,
@@ -133,7 +132,7 @@ def test_training_loop(
 
     to_samples = partial(
         true2sample,
-        to_numpy=to_numpy,
+        to_numpy=un_batch,
         to_sample=partial(
             to_sample,
             inverse_mapping=inverse_mapping,

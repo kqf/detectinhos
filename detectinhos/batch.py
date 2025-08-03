@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields
 from typing import Callable, Generic, List, Optional, Protocol, TypeVar
 
+import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
@@ -10,6 +11,7 @@ T = TypeVar("T")
 class HasBoxesAndClasses(Protocol, Generic[T]):
     boxes: T
     classes: T
+    scores: T
 
     def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
 
@@ -48,6 +50,7 @@ def apply_eval(
     return predicted
 
 
+# TODO: Use the type trick to eliminate to_targets function
 def detection_collate(
     batch: List[BatchElement],
     to_targets: Callable[..., HasBoxesAndClasses],
@@ -63,3 +66,22 @@ def detection_collate(
     }
     files = [sample.file for sample in batch]
     return Batch(files, images, to_targets(**targets))
+
+
+def un_batch(
+    x: HasBoxesAndClasses[torch.Tensor],
+) -> list[HasBoxesAndClasses[np.ndarray]]:
+    result: list[HasBoxesAndClasses[np.ndarray]] = []
+    build = type(x)
+    for boxes, classes, scores in zip(x.boxes, x.classes, x.scores):
+        valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
+        result.append(
+            build(
+                **{
+                    "boxes": boxes[valid].cpu().numpy(),
+                    "classes": classes[valid].cpu().numpy().reshape(-1),
+                    "scores": scores[valid].cpu().numpy().reshape(-1),
+                }
+            )
+        )
+    return result
