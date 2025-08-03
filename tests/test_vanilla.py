@@ -100,10 +100,7 @@ def test_training_loop(
         ),
         batch_size=batch_size,
         num_workers=1,
-        collate_fn=partial(
-            detection_collate,
-            to_targets=DetectionTargets,
-        ),
+        collate_fn=detection_collate,
     )
 
     model = build_model(
