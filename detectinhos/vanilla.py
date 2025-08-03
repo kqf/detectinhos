@@ -21,6 +21,7 @@ T = TypeVar(
 )
 
 
+# TODO: Add the pure vanilla tests
 @dataclass
 class DetectionTargets(Generic[T]):
     scores: T  # [B, N]
