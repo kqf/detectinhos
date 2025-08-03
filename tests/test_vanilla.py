@@ -9,7 +9,7 @@ from detectinhos.batch import detection_collate
 from detectinhos.dataset import DetectionDataset
 from detectinhos.inference import (
     decode as decode_generic,
-    generic_infer_on_rgb,
+    infer_on_rgb,
     true2sample,
 )
 from detectinhos.loss import DetectionLoss
@@ -157,7 +157,7 @@ def test_training_loop(
 
     # Now check the inference after training
     infer_on_rgb_vanilla = partial(
-        generic_infer_on_rgb,
+        infer_on_rgb,
         model=model,
         to_sample=partial(
             to_sample,
