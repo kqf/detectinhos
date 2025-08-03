@@ -145,7 +145,8 @@ def test_training_loop(
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
         map_metric.add(
-            true=to_samples(batch.true), pred=to_samples(decode(batch.pred))
+            true=to_samples(batch.true),
+            pred=to_samples(decode(batch.pred)),
         )
         # Test 1: Check forward pass and loss
         assert "loss" in losses
