@@ -88,6 +88,10 @@ def test_training_loop(
 ):
     mapping = {"background": 0, "apple": 1}
     inverse_mapping = {v: k for k, v in mapping.items()}
+    vanilla_sample = partial(
+        to_sample,
+        inverse_mapping=inverse_mapping,
+    )
 
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
@@ -118,10 +122,7 @@ def test_training_loop(
     )
     to_samples = partial(
         true2sample,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
     )
 
     decode_image = partial(
@@ -134,10 +135,7 @@ def test_training_loop(
 
     to_samples = partial(
         true2sample,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
     )
 
     map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
@@ -159,10 +157,7 @@ def test_training_loop(
     infer_on_rgb_vanilla = partial(
         infer_on_rgb,
         model=model,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
         decode=decode_image,
     )
 
