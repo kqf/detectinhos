@@ -9,7 +9,7 @@ from toolz.functoolz import compose
 from torch.nn.utils.rnn import pad_sequence
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch, apply_eval
+from detectinhos.batch import Batch, apply_eval, un_batch
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
@@ -68,7 +68,6 @@ def generic_infer_on_rgb(
     image: np.ndarray,
     model: torch.nn.Module,
     to_sample,
-    to_numpy,
     decode,
     file: str = "",
 ):
@@ -86,7 +85,7 @@ def generic_infer_on_rgb(
         compose(
             to_sample,
             itemgetter(0),
-            to_numpy,
+            un_batch,
             decode,
         ),
         partial(apply_eval, model=model),
@@ -99,6 +98,5 @@ def generic_infer_on_rgb(
 def true2sample(
     true: HasBoxesAndClasses,
     to_sample,
-    to_numpy,
 ) -> list[Sample[Annotation]]:
-    return list(map(to_sample, to_numpy(true)))
+    return list(map(to_sample, un_batch(true)))

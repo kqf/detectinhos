@@ -5,7 +5,6 @@ from typing import Generic, TypeVar
 import numpy as np
 import torch
 
-from detectinhos.batch import un_batch
 from detectinhos.encode import decode as decode_boxes, encode
 from detectinhos.inference import (
     generic_infer_on_rgb,
@@ -120,6 +119,5 @@ def build_inference_on_rgb(
             to_sample,
             inverse_mapping=inverse_mapping,
         ),
-        to_numpy=un_batch,
         decode=decode,
     )
