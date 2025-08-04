@@ -70,18 +70,16 @@ def detection_collate(
 
 def un_batch(
     x: HasBoxesAndClasses[torch.Tensor],
-) -> list[HasBoxesAndClasses[np.ndarray]]:
-    result: list[HasBoxesAndClasses[np.ndarray]] = []
-    build = type(x)
-    for boxes, classes, scores in zip(x.boxes, x.classes, x.scores):
-        valid = ~torch.isnan(boxes).any(dim=-1)  # remove NaN padded rows
-        result.append(
-            build(
-                **{
-                    "boxes": boxes[valid].cpu().numpy(),
-                    "classes": classes[valid].cpu().numpy().reshape(-1),
-                    "scores": scores[valid].cpu().numpy().reshape(-1),
-                }
-            )
-        )
+) -> List[HasBoxesAndClasses[np.ndarray]]:
+    cls = type(x)
+    fnames = [f.name for f in fields(x)]  # assumes x is a dataclass
+    batch_size = x.boxes.shape[0]
+
+    result: List[HasBoxesAndClasses[np.ndarray]] = []
+    for i in range(batch_size):
+        valid = ~torch.isnan(x.boxes[i]).any(dim=-1)
+        sample = {
+            name: getattr(x, name)[i][valid].cpu().numpy() for name in fnames
+        }
+        result.append(cls(**sample))
     return result
