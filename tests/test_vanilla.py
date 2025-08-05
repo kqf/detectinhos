@@ -88,6 +88,10 @@ def test_training_loop(
 ):
     mapping = {"background": 0, "apple": 1}
     inverse_mapping = {v: k for k, v in mapping.items()}
+    vanilla_sample = partial(
+        to_sample,
+        inverse_mapping=inverse_mapping,
+    )
 
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
@@ -118,10 +122,7 @@ def test_training_loop(
     )
     to_samples = partial(
         true2sample,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
     )
 
     decode_image = partial(
@@ -134,20 +135,20 @@ def test_training_loop(
 
     to_samples = partial(
         true2sample,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
     )
 
+    # TODO: Fix this: providing mapping and num classes -- is redundant
     map_metric = MeanAveragePrecision(num_classes=2, mapping=mapping)
+
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
         batch.pred = model(batch.image)
         batch.true.classes = batch.true.classes.long()
         losses = loss(batch.pred, batch.true)
         map_metric.add(
-            true=to_samples(batch.true), pred=to_samples(decode(batch.pred))
+            true=to_samples(batch.true),
+            pred=to_samples(decode(batch.pred)),
         )
         # Test 1: Check forward pass and loss
         assert "loss" in losses
@@ -159,10 +160,7 @@ def test_training_loop(
     infer_on_rgb_vanilla = partial(
         infer_on_rgb,
         model=model,
-        to_sample=partial(
-            to_sample,
-            inverse_mapping=inverse_mapping,
-        ),
+        to_sample=vanilla_sample,
         decode=decode_image,
     )
 
