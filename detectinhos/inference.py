@@ -64,7 +64,7 @@ def decode(
     return output_cls(**{k: pad(v) for k, v in decoded_fields.items()})
 
 
-def generic_infer_on_rgb(
+def infer_on_rgb(
     image: np.ndarray,
     model: torch.nn.Module,
     to_sample,
