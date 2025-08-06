@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import Callable, Generic, List, Optional, Protocol, TypeVar
+from typing import Generic, List, Optional, Protocol, Sequence, TypeVar
 
 import numpy as np
 import torch
@@ -50,22 +50,36 @@ def apply_eval(
     return predicted
 
 
-# TODO: Use the type trick to eliminate to_targets function
+def pad(tensors: Sequence[torch.Tensor]) -> torch.Tensor:
+    return pad_sequence(
+        tensors,
+        batch_first=True,
+        padding_value=float("nan"),
+    )
+
+
+def to_batch(
+    x: Sequence[HasBoxesAndClasses[np.ndarray]],
+) -> HasBoxesAndClasses[torch.Tensor]:
+    if not x:
+        raise ValueError("to_batch received empty list")
+
+    cls = type(x[0])
+    field_names = [f.name for f in fields(x[0])]
+
+    batched = {
+        name: pad([torch.Tensor(getattr(t, name)) for t in x])
+        for name in field_names
+    }
+    return cls(**batched)
+
+
 def detection_collate(
-    batch: List[BatchElement],
-    to_targets: Callable[..., HasBoxesAndClasses],
+    batch: list[BatchElement],
 ) -> Batch:
     images = torch.stack([torch.Tensor(sample.image) for sample in batch])
-    targets = {
-        field.name: pad_sequence(
-            [torch.Tensor(getattr(e.true, field.name)) for e in batch],
-            batch_first=True,
-            padding_value=float("nan"),
-        )
-        for field in fields(batch[0].true)
-    }
     files = [sample.file for sample in batch]
-    return Batch(files, images, to_targets(**targets))
+    return Batch(files, images, to_batch([b.true for b in batch]))
 
 
 def un_batch(
