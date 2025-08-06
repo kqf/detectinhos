@@ -6,10 +6,9 @@ from typing import Generic, Protocol, TypeVar
 import numpy as np
 import torch
 from toolz.functoolz import compose
-from torch.nn.utils.rnn import pad_sequence
 from torchvision.ops import nms
 
-from detectinhos.batch import Batch, apply_eval, un_batch
+from detectinhos.batch import Batch, apply_eval, pad, un_batch
 from detectinhos.sample import Annotation, Sample
 from detectinhos.sublosses import WeightedLoss
 
@@ -22,14 +21,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
 
     def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
-
-
-def pad(sequence):
-    return pad_sequence(
-        sequence,
-        batch_first=True,
-        padding_value=float("nan"),
-    )  # [B, N, 4]
 
 
 def decode(

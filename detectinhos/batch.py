@@ -62,7 +62,7 @@ def to_batch(
     x: Sequence[HasBoxesAndClasses[np.ndarray]],
 ) -> HasBoxesAndClasses[torch.Tensor]:
     if not x:
-        raise ValueError("to_batch received empty list")
+        raise ValueError("Received an empty sequence of data")
 
     cls = type(x[0])
     field_names = [f.name for f in fields(x[0])]
