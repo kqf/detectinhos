@@ -13,8 +13,6 @@ class HasBoxesAndClasses(Protocol, Generic[T]):
     classes: T
     scores: T
 
-    def __getitem__(self, idx) -> "HasBoxesAndClasses": ...
-
 
 # A single element in the batch
 @dataclass
