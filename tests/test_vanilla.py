@@ -18,8 +18,7 @@ from detectinhos.sample import Annotation, Sample, read_dataset
 from detectinhos.vanilla import (
     TASK,
     DetectionTargets,
-    to_sample,
-    to_targets,
+    build_targets,
 )
 
 
@@ -87,16 +86,12 @@ def test_training_loop(
     resolution,
 ):
     mapping = {"background": 0, "apple": 1}
-    inverse_mapping = {v: k for k, v in mapping.items()}
-    vanilla_sample = partial(
-        to_sample,
-        inverse_mapping=inverse_mapping,
-    )
+    to_sample, to_targets = build_targets(mapping)
 
     dataloader = torch.utils.data.DataLoader(
         DetectionDataset(
             labels=read_dataset(annotations, Sample[Annotation]) * 8,
-            to_targets=partial(to_targets, mapping=mapping),
+            to_targets=to_targets,
         ),
         batch_size=batch_size,
         num_workers=1,
@@ -119,7 +114,8 @@ def test_training_loop(
     )
     to_samples = partial(
         true2sample,
-        to_sample=vanilla_sample,
+        to_sample=to_sample,
+
     )
 
     decode_image = partial(
@@ -132,7 +128,8 @@ def test_training_loop(
 
     to_samples = partial(
         true2sample,
-        to_sample=vanilla_sample,
+        to_sample=to_sample,
+
     )
 
     # TODO: Fix this: providing mapping and num classes -- is redundant
@@ -157,7 +154,7 @@ def test_training_loop(
     infer_on_rgb_vanilla = partial(
         infer_on_rgb,
         model=model,
-        to_sample=vanilla_sample,
+        to_sample=to_sample,
         decode=decode_image,
     )
 
