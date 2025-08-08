@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Generic, TypeVar
+from typing import Callable, Generic, TypeVar
 
 import numpy as np
 import torch
@@ -74,6 +74,19 @@ def to_targets(
     )
 
 
+def build_targets(
+    mapping: dict[int, str],
+) -> tuple[
+    Callable[[DetectionTargets[np.ndarray]], Sample],
+    Callable[[Sample], DetectionTargets[np.ndarray]],
+]:
+    inverse_mapping = {v: k for k, v in mapping.items()}
+    return (
+        partial(to_sample, inverse_mapping=inverse_mapping),
+        partial(to_targets, mapping=mapping),
+    )
+
+
 TASK = DetectionTargets(
     scores=WeightedLoss(
         loss=None,
@@ -103,12 +116,3 @@ TASK = DetectionTargets(
         needs_negatives=False,
     ),
 )
-
-
-def build_targets(mapping: dict[int, str]):
-    inverse_mapping = {v: k for k, v in mapping.items()}
-    return (
-        partial(to_sample, inverse_mapping=inverse_mapping),
-        partial(to_targets, mapping=mapping),
-    )
-
