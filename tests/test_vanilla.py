@@ -115,6 +115,7 @@ def test_training_loop(
     to_samples = partial(
         true2sample,
         to_sample=to_sample,
+
     )
 
     decode_image = partial(
@@ -128,6 +129,7 @@ def test_training_loop(
     to_samples = partial(
         true2sample,
         to_sample=to_sample,
+
     )
 
     # TODO: Fix this: providing mapping and num classes -- is redundant

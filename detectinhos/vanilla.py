@@ -111,3 +111,4 @@ def build_targets(mapping: dict[int, str]):
         partial(to_sample, inverse_mapping=inverse_mapping),
         partial(to_targets, mapping=mapping),
     )
+
