@@ -15,7 +15,7 @@ from detectinhos.inference import (
 from detectinhos.loss import DetectionLoss
 from detectinhos.metrics import MeanAveragePrecision
 from detectinhos.sample import Annotation, Sample, read_dataset
-from detectinhos.standard import (
+from detectinhos.tasks.standard import (
     TASK,
     DetectionTargets,
     build_targets,
