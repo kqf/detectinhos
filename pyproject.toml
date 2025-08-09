@@ -43,7 +43,7 @@ build-backend = "setuptools.build_meta"
 # NB: Keep it the same as in PyPI
 name = "detectinhos"
 dynamic = ["version"]
-description = "Read frames from OpenCV like humans"
+description = "Single Shot Detector training boilerplate pipeline"
 dependencies = [
     "opencv-python",
     "numpy<2",
