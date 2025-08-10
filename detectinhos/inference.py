@@ -9,8 +9,9 @@ from toolz.functoolz import compose
 from torchvision.ops import nms
 
 from detectinhos.batch import Batch, apply_eval, pad, un_batch
-from detectinhos.sample import Annotation, Sample
+from detectinhos.sample import Sample
 from detectinhos.sublosses import WeightedLoss
+from detectinhos.tasks.standard import Annotation
 
 T = TypeVar("T")
 

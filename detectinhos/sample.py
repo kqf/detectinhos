@@ -4,18 +4,8 @@ from pathlib import Path
 from typing import Any, Generic, TypeVar
 
 from dacite import Config, from_dict
-from dataclasses_json import dataclass_json
 
 RelativeXYXY = tuple[float, float, float, float]
-
-
-@dataclass_json
-@dataclass
-class Annotation:
-    bbox: RelativeXYXY
-    label: str
-    score: float = float("nan")
-
 
 T = TypeVar("T")
 
