@@ -26,7 +26,7 @@ class Sample(Generic[T]):
     annotations: list[T]
 
 
-def to_sample(
+def deserialize(
     entry: dict[str, Any],
     sample_type: type[Sample[T]],
 ) -> Sample[T]:
@@ -43,5 +43,5 @@ def read_dataset(
 ) -> list[Sample[T]]:
     with open(path) as f:
         df = json.load(f)
-    samples = [to_sample(x, sample_type) for x in df]
+    samples = [deserialize(x, sample_type) for x in df]
     return [s for s in samples if s.annotations]
