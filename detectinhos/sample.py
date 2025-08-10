@@ -17,7 +17,7 @@ class Annotation:
     score: float = float("nan")
 
 
-T = TypeVar("T", bound=Annotation)
+T = TypeVar("T")
 
 
 @dataclass
