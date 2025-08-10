@@ -126,4 +126,12 @@ TASK = DetectionTargetsWithLandmarks(
         dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
         needs_negatives=False,
     ),
+    landmarks=WeightedLoss(
+        loss=masked_loss(torch.nn.SmoothL1Loss()),
+        weight=1.0,
+        enc_pred=lambda x, _: x,
+        enc_true=partial(encode, variances=[0.1, 0.2]),
+        dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
+        needs_negatives=False,
+    ),
 )
