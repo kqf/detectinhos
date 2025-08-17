@@ -84,13 +84,14 @@ def to_sample(
 def to_targets(
     sample: Sample,
     mapping: dict[str, int],
+    to_targets=DetectionTargets,
 ) -> DetectionTargets[np.ndarray]:
     fields = defaultdict(list)
     for annotation in sample.annotations:
         for k, v in annotation.to_labels(mapping).items():
             fields[k].append(v)
     targets = {k: np.stack(v) for k, v in fields.items()}
-    return DetectionTargets(**targets)
+    return to_targets(**targets)
 
 
 def build_targets(
