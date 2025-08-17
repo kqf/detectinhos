@@ -22,6 +22,14 @@ class Annotation:
     label: str
     score: float
 
+    @classmethod
+    def from_numpy(cls, bbox, label, score, inverse_mapping) -> "Annotation":
+        return Annotation(
+            bbox=bbox.tolist(),
+            label=inverse_mapping[label.item()],
+            score=score.item(),
+        )
+
 
 T = TypeVar(
     "T",
@@ -45,19 +53,20 @@ def to_sample(
     file_name: str = "",
 ) -> Sample:
     predictions = zip(
-        predicted.bbox.tolist(),
-        predicted.label.reshape(-1).tolist(),
-        predicted.score.reshape(-1).tolist(),
+        predicted.bbox,
+        predicted.label,
+        predicted.score,
     )
     return Sample(
         file_name=file_name,
         annotations=[
-            Annotation(
-                bbox=box,
-                label=inverse_mapping[label],
+            Annotation.from_numpy(
+                bbox=bbox,
+                label=label,
                 score=score,
+                inverse_mapping=inverse_mapping,
             )
-            for box, label, score in predictions
+            for bbox, label, score in predictions
         ],
     )
 
