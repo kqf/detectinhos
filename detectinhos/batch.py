@@ -1,17 +1,13 @@
 from dataclasses import dataclass, fields
-from typing import Generic, List, Optional, Protocol, Sequence, TypeVar
+from typing import Generic, List, Optional, Sequence, TypeVar
 
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from detectinhos.tasks.interface import HasBoxesAndClasses
+
 T = TypeVar("T")
-
-
-class HasBoxesAndClasses(Protocol, Generic[T]):
-    bbox: T
-    label: T
-    score: T
 
 
 # A single element in the batch
