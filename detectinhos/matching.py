@@ -116,8 +116,8 @@ T = TypeVar("T")
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
-    boxes: T
-    classes: T
+    bbox: T
+    label: T
 
 
 def match(
@@ -128,10 +128,10 @@ def match(
     overalp: float,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     return iterative_mathing(
-        y_true.classes,
-        y_true.boxes,
+        y_true.label,
+        y_true.bbox,
         anchors,
-        confidences=y_pred.classes,
+        confidences=y_pred.label,
         negpos_ratio=negpos_ratio,
         overalp=overalp,
     )

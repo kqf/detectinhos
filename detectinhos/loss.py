@@ -44,9 +44,9 @@ LossContainer = TypeVar(
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
-    scores: T
-    boxes: T
-    classes: T
+    score: T
+    bbox: T
+    label: T
 
     @classmethod
     def is_dataclass(cls) -> bool: ...
