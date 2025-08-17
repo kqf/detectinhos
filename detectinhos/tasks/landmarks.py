@@ -1,26 +1,25 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable, Generic, TypeVar
+from typing import Callable, TypeVar
 
 import numpy as np
 import torch
 from dataclasses_json import dataclass_json
 
 from detectinhos.encode import decode as decode_boxes, encode
-from detectinhos.sample import RelativeXYXY, Sample
+from detectinhos.sample import Sample
 from detectinhos.sublosses import (
     WeightedLoss,
     masked_loss,
     retina_confidence_loss,
 )
+from detectinhos.tasks.standard import Annotation, DetectionTargets
 
 
 @dataclass_json
 @dataclass
-class Annotation:
-    bbox: RelativeXYXY
-    label: str
-    score: float
+class AnnotationWithLandmarks(Annotation):
+    landmarks: list[float]
 
 
 T = TypeVar(
@@ -31,16 +30,13 @@ T = TypeVar(
 )
 
 
-# TODO: Add the pure vanilla tests
 @dataclass
-class DetectionTargets(Generic[T]):
-    scores: T  # [B, N]
-    boxes: T
-    classes: T
+class DetectionTargetsWithLandmarks(DetectionTargets[T]):
+    landmarks: T
 
 
 def to_sample(
-    predicted: DetectionTargets[np.ndarray],
+    predicted: DetectionTargetsWithLandmarks[np.ndarray],
     inverse_mapping: dict[int, str],
     file_name: str = "",
 ) -> Sample:
@@ -48,27 +44,30 @@ def to_sample(
         predicted.boxes.tolist(),
         predicted.classes.reshape(-1).tolist(),
         predicted.scores.reshape(-1).tolist(),
+        predicted.landmarks.reshape(-1).tolist(),
     )
     return Sample(
         file_name=file_name,
         annotations=[
-            Annotation(
+            AnnotationWithLandmarks(
                 bbox=box,
                 label=inverse_mapping[label],
                 score=score,
+                landmarks=landmarks,
             )
-            for box, label, score in predictions
+            for box, label, score, landmarks in predictions
         ],
     )
 
 
 def to_targets(
-    sample: Sample,
+    sample: Sample[AnnotationWithLandmarks],
     mapping: dict[str, int],
-) -> DetectionTargets[np.ndarray]:
+) -> DetectionTargetsWithLandmarks[np.ndarray]:
     bboxes = []
     label_ids = []
     scores = []
+    landmarks = []
 
     for label in sample.annotations:
         bboxes.append(label.bbox)
@@ -76,19 +75,21 @@ def to_targets(
         label_id = mapping.get(label.label, 0)
         label_ids.append([label_id])
         scores.append([label.score])
+        landmarks.append(label.landmarks)
 
-    return DetectionTargets(
+    return DetectionTargetsWithLandmarks(
         boxes=np.array(bboxes),
         classes=np.array(label_ids, dtype=np.int64),
         scores=np.array(scores, dtype=np.float32),
+        landmarks=np.array(landmarks),
     )
 
 
 def build_targets(
     mapping: dict[int, str],
 ) -> tuple[
-    Callable[[DetectionTargets[np.ndarray]], Sample],
-    Callable[[Sample], DetectionTargets[np.ndarray]],
+    Callable[[DetectionTargetsWithLandmarks[np.ndarray]], Sample],
+    Callable[[Sample], DetectionTargetsWithLandmarks[np.ndarray]],
 ]:
     inverse_mapping = {v: k for k, v in mapping.items()}
     return (
@@ -97,7 +98,7 @@ def build_targets(
     )
 
 
-TASK = DetectionTargets(
+TASK = DetectionTargetsWithLandmarks(
     scores=WeightedLoss(
         loss=None,
         # NB: drop the background class
@@ -118,6 +119,15 @@ TASK = DetectionTargets(
         needs_negatives=True,
     ),
     boxes=WeightedLoss(
+        loss=masked_loss(torch.nn.SmoothL1Loss()),
+        weight=1.0,
+        enc_pred=lambda x, _: x,
+        enc_true=partial(encode, variances=[0.1, 0.2]),
+        dec_pred=partial(decode_boxes, variances=[0.1, 0.2]),
+        needs_negatives=False,
+    ),
+    # TODO: Make sure the loss is correct
+    landmarks=WeightedLoss(
         loss=masked_loss(torch.nn.SmoothL1Loss()),
         weight=1.0,
         enc_pred=lambda x, _: x,
