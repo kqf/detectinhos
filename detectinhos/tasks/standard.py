@@ -4,14 +4,24 @@ from typing import Callable, Generic, TypeVar
 
 import numpy as np
 import torch
+from dataclasses_json import dataclass_json
 
 from detectinhos.encode import decode as decode_boxes, encode
-from detectinhos.sample import Annotation, Sample
+from detectinhos.sample import RelativeXYXY, Sample
 from detectinhos.sublosses import (
     WeightedLoss,
     masked_loss,
     retina_confidence_loss,
 )
+
+
+@dataclass_json
+@dataclass
+class Annotation:
+    bbox: RelativeXYXY
+    label: str
+    score: float = float("nan")
+
 
 T = TypeVar(
     "T",

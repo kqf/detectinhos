@@ -1,6 +1,7 @@
 import pytest
 
-from detectinhos.sample import Annotation, Sample, read_dataset
+from detectinhos.sample import Sample, read_dataset
+from detectinhos.tasks.standard import Annotation
 
 
 @pytest.mark.parametrize(
