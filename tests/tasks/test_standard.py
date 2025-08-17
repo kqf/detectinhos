@@ -46,9 +46,9 @@ class DedetectionModel(torch.nn.Module):
         classes = self.classes.expand(batch_size, -1, -1).clone()
         return DetectionTargets(
             # Return the same tensor twice, one for scores another for labels
-            scores=classes,
-            classes=classes,
-            boxes=boxes,
+            score=classes,
+            label=classes,
+            bbox=boxes,
         )
 
 

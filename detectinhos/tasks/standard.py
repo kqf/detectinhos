@@ -34,9 +34,9 @@ T = TypeVar(
 # TODO: Add the pure vanilla tests
 @dataclass
 class DetectionTargets(Generic[T]):
-    scores: T  # [B, N]
-    boxes: T
-    classes: T
+    score: T
+    bbox: T
+    label: T
 
 
 def to_sample(
@@ -45,9 +45,9 @@ def to_sample(
     file_name: str = "",
 ) -> Sample:
     predictions = zip(
-        predicted.boxes.tolist(),
-        predicted.classes.reshape(-1).tolist(),
-        predicted.scores.reshape(-1).tolist(),
+        predicted.bbox.tolist(),
+        predicted.label.reshape(-1).tolist(),
+        predicted.score.reshape(-1).tolist(),
     )
     return Sample(
         file_name=file_name,
@@ -78,9 +78,9 @@ def to_targets(
         scores.append([label.score])
 
     return DetectionTargets(
-        boxes=np.array(bboxes),
-        classes=np.array(label_ids, dtype=np.int64),
-        scores=np.array(scores, dtype=np.float32),
+        bbox=np.array(bboxes),
+        label=np.array(label_ids, dtype=np.int64),
+        score=np.array(scores, dtype=np.float32),
     )
 
 
@@ -98,14 +98,14 @@ def build_targets(
 
 
 TASK = DetectionTargets(
-    scores=WeightedLoss(
+    score=WeightedLoss(
         loss=None,
         # NB: drop the background class
         dec_pred=lambda logits, _: torch.nn.functional.softmax(logits, dim=-1)[
             ..., 1:
         ].max(dim=-1)[0],
     ),
-    classes=WeightedLoss(
+    label=WeightedLoss(
         loss=retina_confidence_loss,
         weight=2.0,
         enc_pred=lambda x, _: x.reshape(-1, 2),
@@ -117,7 +117,7 @@ TASK = DetectionTargets(
         ).float(),
         needs_negatives=True,
     ),
-    boxes=WeightedLoss(
+    bbox=WeightedLoss(
         loss=masked_loss(torch.nn.SmoothL1Loss()),
         weight=1.0,
         enc_pred=lambda x, _: x,
