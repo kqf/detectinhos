@@ -1,12 +1,13 @@
 from dataclasses import fields, is_dataclass
 from functools import partial
-from typing import Callable, Generic, Protocol, Tuple, TypeVar
+from typing import Callable, Generic, Tuple, TypeVar
 
 import torch
 from torch import nn
 
 from detectinhos.matching import match
 from detectinhos.sublosses import WeightedLoss
+from detectinhos.tasks.interface import HasBoxesAndClasses
 
 
 def select(
@@ -41,16 +42,6 @@ LossContainer = TypeVar(
     "LossContainer",
     bound="HasBoxesAndClasses[WeightedLoss]",
 )
-
-
-class HasBoxesAndClasses(Protocol, Generic[T]):
-    score: T
-    bbox: T
-    label: T
-
-    @classmethod
-    def is_dataclass(cls) -> bool: ...
-
 
 Matching = Callable[
     [
