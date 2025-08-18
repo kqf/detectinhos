@@ -9,9 +9,9 @@ T = TypeVar("T")
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
-    boxes: T
-    classes: T
-    scores: T
+    bbox: T
+    label: T
+    score: T
 
 
 # A single element in the batch
@@ -79,11 +79,11 @@ def un_batch(
 ) -> List[HasBoxesAndClasses[np.ndarray]]:
     cls = type(x)
     fnames = [f.name for f in fields(x)]  # assumes x is a dataclass
-    batch_size = x.boxes.shape[0]
+    batch_size = x.bbox.shape[0]
 
     result: List[HasBoxesAndClasses[np.ndarray]] = []
     for i in range(batch_size):
-        valid = ~torch.isnan(x.boxes[i]).any(dim=-1)
+        valid = ~torch.isnan(x.bbox[i]).any(dim=-1)
         sample = {
             name: getattr(x, name)[i][valid].cpu().numpy() for name in fnames
         }

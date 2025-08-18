@@ -17,9 +17,9 @@ T = TypeVar("T")
 
 
 class HasBoxesAndClasses(Protocol, Generic[T]):
-    scores: T
-    boxes: T
-    classes: T
+    score: T
+    bbox: T
+    label: T
 
 
 def decode(
@@ -29,15 +29,15 @@ def decode(
     nms_threshold: float = 0.4,
     confidence_threshold: float = 0.5,
 ) -> HasBoxesAndClasses[torch.Tensor]:
-    n_batches = pred.boxes.shape[0]
+    n_batches = pred.bbox.shape[0]
     decoded_fields: dict[str, list[torch.Tensor]] = {
         f.name: [] for f in fields(sublosses)
     }
 
     for b in range(n_batches):
         # Decode boxes and scores
-        boxes = sublosses.boxes.dec_pred(pred.boxes[b], priors)
-        scores = sublosses.scores.dec_pred(pred.scores[b], priors)
+        boxes = sublosses.bbox.dec_pred(pred.bbox[b], priors)
+        scores = sublosses.score.dec_pred(pred.score[b], priors)
 
         mask = scores > confidence_threshold
         keep = nms(boxes[mask], scores[mask], iou_threshold=nms_threshold)
