@@ -109,7 +109,8 @@ TASK = DetectionTargets(
         loss=retina_confidence_loss,
         weight=2.0,
         enc_pred=lambda x, _: x.reshape(-1, 2),
-        enc_true=lambda x, _: x,
+        # TODO: Should't we convert it on the batch level?
+        enc_true=lambda x, _: x.long(),
         # NB: drop the background class, labels += 1
         dec_pred=lambda logits, _: (
             torch.nn.functional.softmax(logits, dim=-1)[..., 1:].max(dim=-1)[1]

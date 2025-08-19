@@ -137,7 +137,6 @@ def test_training_loop(
     # sourcery skip: no-loop-in-tests
     for batch in dataloader:
         batch.pred = model(batch.image)
-        batch.true.label = batch.true.label.long()
         losses = loss(batch.pred, batch.true)
         map_metric.add(
             true=to_samples(batch.true),
