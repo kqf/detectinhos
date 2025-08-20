@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import partial
 from typing import Callable, Generic, TypeVar
 
@@ -51,22 +51,25 @@ def to_sample(
     predicted: DetectionTargets[np.ndarray],
     inverse_mapping: dict[int, str],
     file_name: str = "",
+    to_annotation: Callable = Annotation.from_numpy,
 ) -> Sample:
-    predictions = zip(
-        predicted.bbox,
-        predicted.label,
-        predicted.score,
-    )
+    # Convert all fields to Python lists
+    as_lists = {f.name: getattr(predicted, f.name) for f in fields(predicted)}
+
+    # Generate one dict per detection
+    predictions = [
+        {name: values[i] for name, values in as_lists.items()}
+        for i in range(len(next(iter(as_lists.values()))))
+    ]
+
     return Sample(
         file_name=file_name,
         annotations=[
-            Annotation.from_numpy(
-                bbox=bbox,
-                label=label,
-                score=score,
+            to_annotation(
+                **pred,
                 inverse_mapping=inverse_mapping,
             )
-            for bbox, label, score in predictions
+            for pred in predictions
         ],
     )
 
