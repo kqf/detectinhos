@@ -84,6 +84,7 @@ def to_sample(
 def to_targets(
     sample: Sample,
     mapping: dict[str, int],
+    to_targets=DetectionTargets,
 ) -> DetectionTargets[np.ndarray]:
     fields = defaultdict(list)
     for annotation in sample.annotations:
