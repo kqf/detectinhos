@@ -1,6 +1,7 @@
+from collections import defaultdict
 from dataclasses import dataclass, fields
 from functools import partial
-from typing import Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 import numpy as np
 import torch
@@ -30,6 +31,13 @@ class Annotation:
             score=score.item(),
         )
 
+    def to_labels(self, mapping: dict[str, int]) -> dict[str, Any]:
+        return dict(
+            bbox=list(self.bbox),
+            label=mapping[self.label],
+            score=self.score,
+        )
+
 
 T = TypeVar(
     "T",
@@ -53,13 +61,12 @@ def to_sample(
     file_name: str = "",
     to_annotation: Callable = Annotation.from_numpy,
 ) -> Sample:
-    # Convert all fields to Python lists
-    as_lists = {f.name: getattr(predicted, f.name) for f in fields(predicted)}
+    as_dict = {f.name: getattr(predicted, f.name) for f in fields(predicted)}
 
-    # Generate one dict per detection
+    # list of dicts of detections
     predictions = [
-        {name: values[i] for name, values in as_lists.items()}
-        for i in range(len(next(iter(as_lists.values()))))
+        {name: values[i] for name, values in as_dict.items()}
+        for i in range(len(next(iter(as_dict.values()))))
     ]
 
     return Sample(
@@ -77,23 +84,14 @@ def to_sample(
 def to_targets(
     sample: Sample,
     mapping: dict[str, int],
+    to_targets=DetectionTargets,
 ) -> DetectionTargets[np.ndarray]:
-    bboxes = []
-    label_ids = []
-    scores = []
-
-    for label in sample.annotations:
-        bboxes.append(label.bbox)
-
-        label_id = mapping.get(label.label, 0)
-        label_ids.append([label_id])
-        scores.append([label.score])
-
-    return DetectionTargets(
-        bbox=np.array(bboxes),
-        label=np.array(label_ids, dtype=np.int64),
-        score=np.array(scores, dtype=np.float32),
-    )
+    fields = defaultdict(list)
+    for annotation in sample.annotations:
+        for k, v in annotation.to_labels(mapping).items():
+            fields[k].append(v)
+    targets = {k: np.stack(v) for k, v in fields.items()}
+    return to_targets(**targets)
 
 
 def build_targets(
