@@ -1,7 +1,7 @@
-from typing import Generic, Protocol, TypeVar
-
 import torch
 import torch.nn.functional as F
+
+from detectinhos.tasks.interface import HasBoxesAndClasses
 
 
 def convert_to_xyxy(boxes: torch.Tensor) -> torch.Tensor:
@@ -113,14 +113,6 @@ def iterative_mathing(
     positives = torch.stack([match_boxes(b, priors, overalp) for b in boxes])
     negatives = mine_negatives(classes, confidences, negpos_ratio, positives)
     return positives, negatives
-
-
-T = TypeVar("T")
-
-
-class HasBoxesAndClasses(Protocol, Generic[T]):
-    bbox: T
-    label: T
 
 
 def match(

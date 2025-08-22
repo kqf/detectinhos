@@ -1,7 +1,6 @@
 from dataclasses import fields
 from functools import partial
 from operator import itemgetter
-from typing import Generic, Protocol, TypeVar
 
 import numpy as np
 import torch
@@ -11,15 +10,8 @@ from torchvision.ops import nms
 from detectinhos.batch import Batch, apply_eval, pad, un_batch
 from detectinhos.sample import Sample
 from detectinhos.sublosses import WeightedLoss
+from detectinhos.tasks.interface import HasBoxesAndClasses
 from detectinhos.tasks.standard import Annotation
-
-T = TypeVar("T")
-
-
-class HasBoxesAndClasses(Protocol, Generic[T]):
-    score: T
-    bbox: T
-    label: T
 
 
 def decode(
