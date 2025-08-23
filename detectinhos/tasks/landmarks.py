@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable, TypeVar
+from typing import Any, Callable, TypeVar
 
 import numpy as np
 import torch
@@ -20,6 +20,11 @@ from detectinhos.tasks.standard import Annotation, DetectionTargets
 @dataclass
 class AnnotationWithLandmarks(Annotation):
     landmarks: list[float]
+
+    def to_labels(self, mapping: dict[str, int]) -> dict[str, Any]:
+        labels = super().to_labels(mapping)
+        labels["landmarks"] = self.landmarks
+        return labels
 
     @classmethod
     def from_numpy(  # type: ignore
