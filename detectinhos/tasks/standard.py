@@ -91,7 +91,7 @@ def to_targets(
         for k, v in annotation.to_labels(mapping).items():
             fields[k].append(v)
     targets = {k: np.stack(v) for k, v in fields.items()}
-    return DetectionTargets(**targets)
+    return to_targets(**targets)
 
 
 def build_targets(

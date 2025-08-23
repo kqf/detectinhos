@@ -21,6 +21,28 @@ from detectinhos.tasks.standard import Annotation, DetectionTargets
 class AnnotationWithLandmarks(Annotation):
     landmarks: list[float]
 
+    @classmethod
+    def from_numpy(  # type: ignore
+        cls,
+        bbox,
+        label,
+        score,
+        landmarks,
+        inverse_mapping,
+    ) -> "DetectionTargetsWithLandmarks":
+        standard = super().from_numpy(
+            bbox=bbox,
+            label=label,
+            score=score,
+            inverse_mapping=inverse_mapping,
+        )
+        return DetectionTargetsWithLandmarks(
+            bbox=standard.bbox,
+            label=standard.label,
+            score=standard.score,
+            landmarks=landmarks,
+        )
+
 
 T = TypeVar(
     "T",
