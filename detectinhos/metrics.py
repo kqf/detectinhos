@@ -42,12 +42,12 @@ def to_table(
 
 
 class MeanAveragePrecision:
-    def __init__(self, num_classes: int, mapping: dict[str, int]):
+    def __init__(self, mapping: dict[str, int]):
         # Convention: skip background class (index 0)
         self.metric_fn = MetricBuilder.build_evaluation_metric(
             "map_2d",
             async_mode=False,
-            num_classes=num_classes - 1,
+            num_classes=len(mapping) - 1,
         )
         self.mapping = mapping
 
