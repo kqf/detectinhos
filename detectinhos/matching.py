@@ -88,10 +88,9 @@ def mine_negatives(
     pos_batch, pos_anchor, pos_obj = torch.where(positive)
     labels = torch.zeros_like(pred[:, :, 0], dtype=label.dtype)
     labels[pos_batch, pos_anchor] = label[pos_batch, pos_obj].squeeze()
-    # TODO: Avoid type conversion here
     loss = F.cross_entropy(
         pred.view(-1, pred.shape[-1]),
-        labels.long().view(-1),
+        labels.view(-1),
         reduction="none",
     ).view(batch_size, num_anchors)
     loss[pos_batch, pos_anchor] = 0
