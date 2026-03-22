@@ -118,19 +118,6 @@ def test_training_loop(
         to_sample=to_sample,
     )
 
-    decode_image = partial(
-        decode_generic,
-        sublosses=TASK,
-        priors=sample_anchors,
-        confidence_threshold=0.5,
-        nms_threshold=0.4,
-    )
-
-    to_samples = partial(
-        true2sample,
-        to_sample=to_sample,
-    )
-
     map_metric = MeanAveragePrecision(mapping)
 
     # sourcery skip: no-loop-in-tests
@@ -146,6 +133,14 @@ def test_training_loop(
 
     # Test 2: Check mAP metric is calculated correctly
     assert map_metric.value()["mAP"] == pytest.approx(0.5)
+
+    decode_image = partial(
+        decode_generic,
+        sublosses=TASK,
+        priors=sample_anchors,
+        confidence_threshold=0.5,
+        nms_threshold=0.4,
+    )
 
     # Now check the inference after training
     infer_on_rgb_vanilla = partial(
