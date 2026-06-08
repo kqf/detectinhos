@@ -51,7 +51,6 @@ dependencies = [
     "torchvision",
     "dacite",
     "dataclasses-json",
-    "torchvision",
     "mean-average-precision",
     "toolz",
 ]
