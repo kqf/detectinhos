@@ -32,3 +32,9 @@ jobs:
 
       - name: Run pre-commit checks
         uses: pre-commit/action@v3.0.1
+
+      - name: Check package metadata rendering (twine check)
+        run: |
+          pip install build twine
+          python -m build --sdist --wheel
+          twine check dist/*
